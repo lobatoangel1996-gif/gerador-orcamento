@@ -258,6 +258,10 @@
       </div>
 
       <div class="checkbox-row">
+        <input type="checkbox" id="fNoInvoice"><label style="margin:0; display:inline;">Sem nota fiscal (cliente pediu, sem cobrar imposto)</label>
+      </div>
+
+      <div class="checkbox-row">
         <input type="checkbox" id="fSplit"><label style="margin:0; display:inline;">Dividir comissão com sócio</label>
       </div>
       <div class="form-row three" id="splitFields" style="display:none;">
@@ -278,7 +282,7 @@
           <div>Mão de obra: <span id="bLabor">R$ 0,00</span></div>
           <div>Homologação: <span id="bHomolog">R$ 0,00</span></div>
           <div>Estrutura: <span id="bInfra">R$ 0,00</span></div>
-          <div>Nota fiscal (13,33% sobre venda−importadora): <span id="bTax">R$ 0,00</span></div>
+          <div>Nota fiscal<span id="bTaxLabel"> (13,33% sobre venda−importadora)</span>: <span id="bTax">R$ 0,00</span></div>
         </div>
         <div class="commission-line" id="pCommissionLine" style="display:none;">
           <div><div class="pk" style="font-size:11px;color:var(--text-faint);font-family:var(--font-mono);">Minha comissão</div><div class="pv" id="pMyCommission">R$ 0,00</div></div>
@@ -374,12 +378,14 @@
     return {value:1500, estimated:true};
   }
 
+  function taxRateFor(q){ return q.noInvoice ? 0 : TAX_RATE; }
+
   // Venda que fecha exatamente a margem alvo, dado: fornecedor(F), mao+homolog+estrutura(fixedCosts), taxa(t), margem(m)
   // Lucro = (V-F)*(1-t) - fixedCosts = m*V  =>  V = [F*(1-t) + fixedCosts] / (1 - t - m)
-  function saleForTargetMargin(F, fixedCosts, m){
-    const denom = (1 - TAX_RATE - m);
+  function saleForTargetMargin(F, fixedCosts, m, t){
+    const denom = (1 - t - m);
     if(denom <= 0) return 0;
-    return (F*(1-TAX_RATE) + fixedCosts) / denom;
+    return (F*(1-t) + fixedCosts) / denom;
   }
 
   function resolveSupplier(q){
@@ -396,13 +402,14 @@
     const power = q.panelsQty * q.panelWatt / 1000;
     const homolog = homologFor(power);
     const fixedCosts = laborValue + homolog.value + q.infra;
+    const t = taxRateFor(q);
     let saleValue;
     if(q.saleMode === 'auto'){
-      saleValue = saleForTargetMargin(supplierValue, fixedCosts, q.marginTarget/100);
+      saleValue = saleForTargetMargin(supplierValue, fixedCosts, q.marginTarget/100, t);
     } else {
       saleValue = q.saleManual;
     }
-    const tax = (saleValue - supplierValue) * TAX_RATE;
+    const tax = (saleValue - supplierValue) * t;
     const lucro = saleValue - supplierValue - fixedCosts - tax;
     const perKwp = power ? saleValue / power : 0;
     const margin = saleValue ? lucro / saleValue : 0;
@@ -553,7 +560,7 @@
               <div><span class="dk">Mão de obra:</span> <span class="dv">${fmtBRL(c.labor.value)}${c.labor.estimated?' (estimado)':''}</span></div>
               <div><span class="dk">Homologação:</span> <span class="dv">${fmtBRL(c.homolog.value)}${c.homolog.estimated?' (conferir)':''}</span></div>
               <div><span class="dk">Estrutura:</span> <span class="dv">${fmtBRL(q.infra)}</span></div>
-              <div><span class="dk">Nota fiscal:</span> <span class="dv">${fmtBRL(c.tax)}</span></div>
+              <div><span class="dk">Nota fiscal${q.noInvoice ? ' (sem nota)' : ''}:</span> <span class="dv">${fmtBRL(c.tax)}</span></div>
               <div><span class="dk">Lucro líquido:</span> <span class="dv">${fmtBRL(c.lucro)}</span></div>
               <div><span class="dk">R$ / kWp:</span> <span class="dv">${fmtBRL(c.perKwp)}</span></div>
               <div><span class="dk">Modo de venda:</span> <span class="dv">${q.saleMode==='auto' ? 'Margem alvo '+q.marginTarget+'%' : 'Manual'}</span></div>
@@ -618,6 +625,7 @@
     document.getElementById('fSupplierB').value = '';
     document.getElementById('pickA').checked = true;
     document.getElementById('fInfra').value = 2000;
+    document.getElementById('fNoInvoice').checked = false;
     document.getElementById('fMarginTarget').value = 25;
     document.getElementById('fSaleManual').value = '';
     document.getElementById('modeAuto').checked = true;
@@ -650,6 +658,7 @@
     document.getElementById('pickA').checked = (q.selectedSupplier || 'A') === 'A';
     document.getElementById('pickB').checked = (q.selectedSupplier || 'A') === 'B';
     document.getElementById('fInfra').value = q.infra;
+    document.getElementById('fNoInvoice').checked = !!q.noInvoice;
     document.getElementById('modeAuto').checked = q.saleMode === 'auto';
     document.getElementById('modeManual').checked = q.saleMode === 'manual';
     document.getElementById('marginTargetRow').style.display = q.saleMode === 'auto' ? 'grid' : 'none';
@@ -681,6 +690,7 @@
       selectedSupplier: document.querySelector('input[name="supplierPick"]:checked').value,
       laborOverride: document.getElementById('fLabor').value === '' ? null : parseFloat(document.getElementById('fLabor').value),
       infra: parseFloat(document.getElementById('fInfra').value) || 0,
+      noInvoice: document.getElementById('fNoInvoice').checked,
       saleMode: document.querySelector('input[name="saleMode"]:checked').value,
       marginTarget: parseFloat(document.getElementById('fMarginTarget').value) || 0,
       saleManual: parseFloat(document.getElementById('fSaleManual').value) || 0,
@@ -717,7 +727,8 @@
     document.getElementById('rLaborWarn').style.display = c.labor.estimated ? 'block' : 'none';
     document.getElementById('rHomolog').textContent = fmtBRL(c.homolog.value);
     document.getElementById('rHomologWarn').style.display = c.homolog.estimated ? 'block' : 'none';
-    document.getElementById('rSaleAuto').textContent = fmtBRL(saleForTargetMargin(c.supplierValue, c.labor.value+c.homolog.value+data.infra, data.marginTarget/100));
+    document.getElementById('rSaleAuto').textContent = fmtBRL(saleForTargetMargin(c.supplierValue, c.labor.value+c.homolog.value+data.infra, data.marginTarget/100, taxRateFor(data)));
+    document.getElementById('bTaxLabel').textContent = data.noInvoice ? ' (sem nota)' : ' (13,33% sobre venda−importadora)';
     renderHistRef(data.panelsQty);
 
     document.getElementById('pLucro').textContent = fmtBRL(c.lucro);
@@ -744,6 +755,7 @@
   ['fPanelWatt','fSupplierA','fSupplierB','fLabor','fInfra','fMarginTarget','fSaleManual','fMyPct','fPartnerPct'].forEach(id => {
     document.getElementById(id).addEventListener('input', updatePreview);
   });
+  document.getElementById('fNoInvoice').addEventListener('change', updatePreview);
   document.querySelectorAll('input[name="supplierPick"]').forEach(radio => {
     radio.addEventListener('change', updatePreview);
   });
