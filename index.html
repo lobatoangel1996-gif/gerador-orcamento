@@ -358,6 +358,11 @@
   function uid(){ return Math.random().toString(36).slice(2,10); }
   function todayISO(){ return new Date().toISOString().slice(0,10); }
   function fmtBRL(v){ return (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'}); }
+  function parseBRL(str){
+    if(!str) return 0;
+    const cleaned = str.replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',', '.');
+    return parseFloat(cleaned) || 0;
+  }
   function fmtPct(v){ return ((v||0)*100).toLocaleString('pt-BR', {maximumFractionDigits:1}) + '%'; }
   function escapeHtml(str){ const div = document.createElement('div'); div.textContent = str || ''; return div.innerHTML; }
 
@@ -755,7 +760,21 @@
   ['fPanelWatt','fSupplierA','fSupplierB','fLabor','fInfra','fMarginTarget','fSaleManual','fMyPct','fPartnerPct'].forEach(id => {
     document.getElementById(id).addEventListener('input', updatePreview);
   });
-  document.getElementById('fNoInvoice').addEventListener('change', updatePreview);
+  document.getElementById('fNoInvoice').addEventListener('change', () => {
+    const isAuto = document.querySelector('input[name="saleMode"]:checked').value === 'auto';
+    const nowChecked = document.getElementById('fNoInvoice').checked;
+    if(isAuto && nowChecked){
+      // Trava o preço que já estava calculado, em vez de deixar o preço cair
+      // pra manter a mesma margem-alvo. O ganho de não ter imposto vira lucro extra.
+      const frozenSale = parseBRL(document.getElementById('rSaleAuto').textContent);
+      document.getElementById('fSaleManual').value = frozenSale.toFixed(2);
+      document.getElementById('modeManual').checked = true;
+      document.getElementById('modeAuto').checked = false;
+      document.getElementById('marginTargetRow').style.display = 'none';
+      document.getElementById('manualSaleRow').style.display = 'grid';
+    }
+    updatePreview();
+  });
   document.querySelectorAll('input[name="supplierPick"]').forEach(radio => {
     radio.addEventListener('change', updatePreview);
   });
