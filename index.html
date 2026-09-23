@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador de Orçamento — Energia Solar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  :root{
+    --bg: #10141b; --surface: #1a212b; --surface-2: #212a36; --border: #2b3444;
+    --amber: #ffb020; --orange: #ff6a39; --green: #35d399; --red: #ff6363;
+    --text: #f2f5f9; --text-muted: #8b96a8; --text-faint: #5c6678;
+    --font-display: 'Space Grotesk', sans-serif; --font-body: 'Inter', sans-serif; --font-mono: 'JetBrains Mono', monospace;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{ background: radial-gradient(ellipse 1200px 600px at 50% -10%, #1b2534 0%, var(--bg) 55%); color: var(--text); font-family: var(--font-body); min-height: 100vh; padding: 32px 20px 80px; }
+  .wrap{ max-width: 1100px; margin: 0 auto; }
+  header{ display:flex; justify-content:space-between; align-items:flex-start; gap: 24px; margin-bottom: 28px; flex-wrap: wrap; }
+  .sync-status{ display:flex; align-items:center; gap:7px; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 6px 12px 6px 10px; flex-shrink:0; }
+  .sync-dot{ width:7px; height:7px; border-radius:50%; background: var(--green); flex-shrink:0; }
+  .sync-status.syncing .sync-dot{ background: var(--amber); animation: pulse 1s ease-in-out infinite; }
+  .sync-status.error .sync-dot{ background: var(--red); }
+  @keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
+  .eyebrow{ font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--amber); margin: 0 0 6px; }
+  h1{ font-family: var(--font-display); font-weight: 700; font-size: 28px; margin: 0; letter-spacing: -0.01em; }
+  .subtitle{ color: var(--text-muted); font-size: 14px; margin-top: 6px; max-width: 480px; }
+  .summary{ display:grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+  .stat{ background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
+  .stat .k{ font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 8px; }
+  .stat .v{ font-family: var(--font-mono); font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+  .stat.lucro .v{ color: var(--green); } .stat.margem .v{ color: var(--amber); }
+  @media (max-width: 720px){ .summary{ grid-template-columns: repeat(2,1fr); } }
+  .section{ margin-bottom: 26px; }
+  .section-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px; }
+  .section-title{ font-family: var(--font-display); font-weight: 600; font-size: 17px; }
+  .btn{ font-family: var(--font-body); font-weight: 600; font-size: 13px; border: none; border-radius: 10px; padding: 10px 16px; cursor: pointer; transition: transform .12s ease, filter .12s ease; }
+  .btn:active{ transform: scale(0.97); }
+  .btn-primary{ background: linear-gradient(135deg, var(--amber), var(--orange)); color: #1a1206; }
+  .btn-primary:hover{ filter: brightness(1.08); }
+  .btn-ghost{ background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover{ background: #262f3c; }
+  .btn-sm{ padding: 6px 12px; font-size: 12px; }
+  .btn-danger{ background: transparent; color: var(--red); border: 1px solid #4a2a2a; }
+  .form-card{ background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 20px; display: none; }
+  .form-card.open{ display: block; }
+  .form-row{ display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .form-row.three{ grid-template-columns: 1fr 1fr 1fr; }
+  @media (max-width: 640px){ .form-row, .form-row.three{ grid-template-columns: 1fr; } }
+  label{ display:block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-family: var(--font-mono); letter-spacing: .02em; }
+  input, select{ width: 100%; background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; padding: 10px 12px; color: var(--text); font-family: var(--font-body); font-size: 14px; }
+  input:focus, select:focus{ outline: 2px solid var(--amber); outline-offset: 1px; }
+  input[disabled]{ opacity: .75; cursor: not-allowed; }
+  input[type=checkbox]{ width:auto; accent-color: var(--amber); margin-right:8px; }
+  input[type=radio]{ width:auto; accent-color: var(--amber); }
+  .checkbox-row{ display:flex; align-items:center; margin-bottom:14px; font-size:14px; }
+  .toggle-row{ display:flex; gap: 18px; margin-bottom: 14px; }
+  .toggle-opt{ display:flex; align-items:center; gap:6px; font-size: 13px; cursor:pointer; }
+  .auto-field{ position:relative; }
+  .auto-badge{ font-family: var(--font-mono); font-size: 10px; color: var(--amber); background: rgba(255,176,32,0.12); border: 1px solid rgba(255,176,32,.3); border-radius: 6px; padding: 1px 6px; margin-left: 6px; }
+  .warn-note{ font-size: 11px; color: var(--orange); margin-top: 4px; font-family: var(--font-mono); }
+  .readout{ background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; padding: 10px 12px; font-family: var(--font-mono); font-size: 14px; }
+  .sub-block{ background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+  .sub-block-title{ font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing:.06em; color: var(--text-muted); margin-bottom: 10px; }
+  .supplier-compare-row{ display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 640px){ .supplier-compare-row{ grid-template-columns: 1fr; } }
+  .supplier-option label{ display:flex; align-items:center; gap: 6px; font-family: var(--font-body); font-size: 13px; color: var(--text); margin-bottom: 6px; text-transform: none; letter-spacing: 0; }
+  .hist-ref{ margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); }
+  .hist-ref-title{ font-family: var(--font-mono); font-size: 11px; color: var(--amber); margin-bottom: 6px; }
+  .hist-ref-item{ font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); padding: 2px 0; }
+  .preview{ background: var(--surface-2); border: 1px dashed var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  .preview-title{ font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing:.06em; color: var(--text-muted); margin-bottom: 12px; }
+  .preview-grid{ display:grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+  @media (max-width: 720px){ .preview-grid{ grid-template-columns: repeat(2,1fr); } }
+  .preview-item .pk{ font-size: 11px; color: var(--text-faint); font-family: var(--font-mono); margin-bottom: 4px; }
+  .preview-item .pv{ font-family: var(--font-mono); font-size: 16px; font-weight: 600; }
+  .preview-item.lucro .pv{ color: var(--green); } .preview-item.margem .pv{ color: var(--amber); }
+  .breakdown{ margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); display:grid; grid-template-columns: repeat(2,1fr); gap: 6px 20px; }
+  @media (max-width: 640px){ .breakdown{ grid-template-columns: 1fr; } }
+  .commission-line{ margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); display:flex; gap: 24px; flex-wrap:wrap; }
+  .commission-line .pv{ font-family: var(--font-mono); font-weight:600; }
+  .form-actions{ display:flex; gap: 10px; justify-content:flex-end; }
+  .quote-card{ background: var(--surface); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
+  .quote-head{ display:flex; justify-content:space-between; align-items:center; padding: 16px 18px; cursor: pointer; gap: 16px; }
+  .quote-left .name{ font-family: var(--font-display); font-weight:600; font-size:15px; display:flex; align-items:center; flex-wrap:wrap; gap:2px; }
+  .quote-left .meta{ font-family: var(--font-mono); font-size:12px; color: var(--text-muted); margin-top:4px; }
+  .quote-right{ text-align:right; flex-shrink:0; }
+  .quote-right .value{ font-family: var(--font-mono); font-weight:700; font-size:16px; color: var(--green); }
+  .quote-right .margin{ font-family: var(--font-mono); font-size:12px; color: var(--amber); margin-top:2px; }
+  .quote-body{ display:none; padding: 0 18px 18px; border-top: 1px solid var(--border); }
+  .quote-body.open{ display:block; }
+  .detail-grid{ display:grid; grid-template-columns: repeat(2,1fr); gap: 10px 20px; margin: 14px 0; font-size: 13px; }
+  @media (max-width: 640px){ .detail-grid{ grid-template-columns: 1fr; } }
+  .detail-grid .dk{ color: var(--text-muted); } .detail-grid .dv{ font-family: var(--font-mono); }
+  .quote-actions{ display:flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .status-actions{ display:flex; gap: 8px; flex-wrap: wrap; align-items:center; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+  .status-actions .sa-label{ font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); margin-right: 2px; }
+  .status-btn{ font-family: var(--font-mono); font-size: 11px; padding: 6px 11px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-muted); transition: all .12s ease; }
+  .status-btn:hover{ filter: brightness(1.2); }
+  .status-btn.sb-espera.current{ border-color: var(--amber); color: var(--amber); background: rgba(255,176,32,0.1); }
+  .status-btn.sb-vendido.current{ border-color: var(--green); color: var(--green); background: rgba(53,211,153,0.1); }
+  .status-btn.sb-perdido.current{ border-color: var(--red); color: var(--red); background: rgba(255,99,99,0.1); }
+  .status-badge{ display:inline-flex; align-items:center; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing:.04em; padding: 3px 9px; border-radius: 20px; margin-left: 8px; vertical-align: middle; }
+  .status-badge.espera{ background: rgba(255,176,32,.12); color: var(--amber); border: 1px solid rgba(255,176,32,.3); }
+  .status-badge.vendido{ background: rgba(53,211,153,.12); color: var(--green); border: 1px solid rgba(53,211,153,.3); }
+  .status-badge.perdido{ background: rgba(255,99,99,.12); color: var(--red); border: 1px solid rgba(255,99,99,.3); }
+  .filter-tabs{ display:flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .filter-tab{ font-family: var(--font-mono); font-size: 12px; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; transition: all .15s ease; }
+  .filter-tab:hover{ background: var(--surface-2); }
+  .filter-tab.active{ background: var(--surface-2); color: var(--text); border-color: var(--amber); }
+  .filter-tab .count{ font-weight: 600; margin-left: 4px; color: var(--text-faint); }
+  .filter-tab.active .count{ color: var(--amber); }
+  .empty{ color: var(--text-faint); font-size: 14px; padding: 30px 0; text-align:center; }
+  #printArea{ display:none; }
+  .login-screen{ min-height: 100vh; display:flex; align-items:center; justify-content:center; padding: 20px; }
+  .login-card{ background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: 100%; max-width: 360px; }
+  .login-card h1{ margin-bottom: 6px; }
+  .login-card .field{ margin-bottom: 14px; }
+  .login-error{ color: var(--red); font-size: 13px; margin-bottom: 14px; font-family: var(--font-mono); }
+  .header-actions{ display:flex; align-items:center; gap:10px; flex-shrink:0; }
+  @media print{
+    body *{ visibility: hidden; }
+    #printArea, #printArea *{ visibility: visible; }
+    #printArea{ display:block; position: absolute; top:0; left:0; width:100%; padding: 40px; background:#fff; color:#111; }
+    .pq-header{ display:flex; justify-content:space-between; border-bottom: 2px solid #111; padding-bottom: 16px; margin-bottom: 24px; }
+    .pq-title{ font-size: 22px; font-weight:700; } .pq-sub{ font-size: 12px; color:#555; margin-top:4px; }
+    .pq-row{ display:flex; justify-content:space-between; padding: 10px 0; border-bottom: 1px solid #ddd; font-size: 14px; }
+    .pq-total{ display:flex; justify-content:space-between; padding: 18px 0; font-size: 20px; font-weight:700; margin-top: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <p class="eyebrow">Energia Solar · Orçamentos</p>
+    <h1>Entrar</h1>
+    <p class="subtitle" style="margin-bottom:20px;">Acesso restrito. Use o e-mail e senha cadastrados.</p>
+    <div class="field"><label>E-mail</label><input type="email" id="loginEmail" autocomplete="username"></div>
+    <div class="field"><label>Senha</label><input type="password" id="loginPassword" autocomplete="current-password"></div>
+    <div id="loginError" class="login-error" style="display:none;"></div>
+    <button class="btn btn-primary" id="loginBtn" style="width:100%;">Entrar</button>
+  </div>
+</div>
+
+<div class="wrap" id="appRoot" style="display:none;">
+  <header>
+    <div>
+      <p class="eyebrow">Energia Solar · Orçamentos</p>
+      <h1>Gerador de Orçamento</h1>
+      <p class="subtitle">Digite número de painéis, tipo de inversor e compare até 2 fornecedores — mão de obra, homologação, nota fiscal e preço de venda saem automáticos.</p>
+    </div>
+    <div class="header-actions">
+      <div id="syncStatus" class="sync-status">
+        <span class="sync-dot"></span><span id="syncStatusText">Sincronizando…</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" id="logoutBtn">Sair</button>
+    </div>
+  </header>
+
+  <div class="summary">
+    <div class="stat"><div class="k">Orçamentos salvos</div><div class="v" id="statCount">0</div></div>
+    <div class="stat"><div class="k">Valor vendido</div><div class="v" id="statTotal">R$ 0,00</div></div>
+    <div class="stat lucro"><div class="k">Lucro líquido (vendidos)</div><div class="v" id="statLucro">R$ 0,00</div></div>
+    <div class="stat margem"><div class="k">Margem média (vendidos)</div><div class="v" id="statMargem">0%</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">Novo orçamento</div>
+      <button class="btn btn-primary" id="toggleFormBtn">+ Novo orçamento</button>
+    </div>
+
+    <div class="form-card" id="formCard">
+      <div class="form-row">
+        <div><label>Nome do cliente</label><input type="text" id="fClient" placeholder="Ex: Carol Fanchini"></div>
+        <div><label>Data</label><input type="date" id="fDate"></div>
+      </div>
+
+      <div class="form-row">
+        <div><label>Status do orçamento</label>
+          <select id="fStatus">
+            <option value="espera">Em espera</option>
+            <option value="vendido">Vendido</option>
+            <option value="perdido">Não vendido</option>
+          </select>
+        </div>
+        <div></div>
+      </div>
+
+      <div class="form-row three">
+        <div><label>Número de painéis</label><input type="number" id="fPanelsQty" min="1" placeholder="Ex: 16"></div>
+        <div><label>Potência de cada painel (W)</label><input type="number" id="fPanelWatt" value="600"></div>
+        <div><label>Potência total (kWp)</label><div class="readout" id="rPower">0,00</div></div>
+      </div>
+
+      <div class="form-row">
+        <div><label>Tipo de inversor</label><select id="fInvType"><option value="micro">Microinversor</option><option value="string">Inversor string</option></select></div>
+        <div><label>Modelo / quantidade do inversor</label><input type="text" id="fInvModel" placeholder="Ex: 4 micros HOY ou SOFAR 6K"></div>
+      </div>
+
+      <div class="sub-block">
+        <div class="sub-block-title">Comparação de fornecedores (marque qual usar no cálculo)</div>
+        <div class="supplier-compare-row">
+          <div class="supplier-option">
+            <label><input type="radio" name="supplierPick" value="A" id="pickA" checked> Fornecedor A</label>
+            <input type="number" id="fSupplierA" step="0.01" placeholder="Ex: 12700">
+          </div>
+          <div class="supplier-option">
+            <label><input type="radio" name="supplierPick" value="B" id="pickB"> Fornecedor B (opcional)</label>
+            <input type="number" id="fSupplierB" step="0.01" placeholder="Ex: 11900">
+          </div>
+        </div>
+        <div class="hist-ref" id="histRef" style="display:none;"></div>
+      </div>
+
+      <div class="form-row">
+        <div><label>Estrutura / materiais extra (R$) — preenchimento manual</label><input type="number" id="fInfra" step="0.01" value="2000"></div>
+        <div></div>
+      </div>
+
+      <div class="form-row">
+        <div class="auto-field">
+          <label>Mão de obra <span class="auto-badge">AUTO</span></label>
+          <input type="number" id="fLabor" step="0.01">
+          <div class="warn-note" id="rLaborWarn" style="display:none;">Fora da tabela oficial (acima de 60 painéis) — valor estimado, confira antes de fechar.</div>
+        </div>
+        <div class="auto-field">
+          <label>Homologação <span class="auto-badge">AUTO</span></label>
+          <div class="readout" id="rHomolog">R$ 0,00</div>
+          <div class="warn-note" id="rHomologWarn" style="display:none;">Acima de 75 kWp sua tabela não cobre — confira manualmente.</div>
+        </div>
+      </div>
+
+      <div class="toggle-row">
+        <label class="toggle-opt"><input type="radio" name="saleMode" value="auto" id="modeAuto" checked> Calcular venda pela margem alvo</label>
+        <label class="toggle-opt"><input type="radio" name="saleMode" value="manual" id="modeManual"> Definir venda manualmente</label>
+      </div>
+
+      <div class="form-row" id="marginTargetRow">
+        <div><label>Margem líquida alvo (%)</label><input type="number" id="fMarginTarget" value="25" step="0.1"></div>
+        <div><label>Valor de venda (calculado)</label><div class="readout" id="rSaleAuto">R$ 0,00</div></div>
+      </div>
+      <div class="form-row" id="manualSaleRow" style="display:none;">
+        <div><label>Valor total do projeto — venda (R$)</label><input type="number" id="fSaleManual" step="0.01" placeholder="Ex: 25200"></div>
+        <div></div>
+      </div>
+
+      <div class="checkbox-row">
+        <input type="checkbox" id="fSplit"><label style="margin:0; display:inline;">Dividir comissão com sócio</label>
+      </div>
+      <div class="form-row three" id="splitFields" style="display:none;">
+        <div><label>Minha comissão (%)</label><input type="number" id="fMyPct" value="40"></div>
+        <div><label>Comissão do sócio (%)</label><input type="number" id="fPartnerPct" value="60"></div>
+        <div><label>Nome do sócio</label><input type="text" id="fPartnerName" value="Pai"></div>
+      </div>
+
+      <div class="preview">
+        <div class="preview-title">Prévia do cálculo</div>
+        <div class="preview-grid">
+          <div class="preview-item lucro"><div class="pk">Lucro líquido</div><div class="pv" id="pLucro">R$ 0,00</div></div>
+          <div class="preview-item"><div class="pk">Valor de venda final</div><div class="pv" id="pSale">R$ 0,00</div></div>
+          <div class="preview-item margem"><div class="pk">Margem líquida</div><div class="pv" id="pMargem">0%</div></div>
+          <div class="preview-item"><div class="pk">R$ por kWp</div><div class="pv" id="pKwp">R$ 0,00</div></div>
+        </div>
+        <div class="breakdown">
+          <div>Mão de obra: <span id="bLabor">R$ 0,00</span></div>
+          <div>Homologação: <span id="bHomolog">R$ 0,00</span></div>
+          <div>Estrutura: <span id="bInfra">R$ 0,00</span></div>
+          <div>Nota fiscal (13,33% sobre venda−importadora): <span id="bTax">R$ 0,00</span></div>
+        </div>
+        <div class="commission-line" id="pCommissionLine" style="display:none;">
+          <div><div class="pk" style="font-size:11px;color:var(--text-faint);font-family:var(--font-mono);">Minha comissão</div><div class="pv" id="pMyCommission">R$ 0,00</div></div>
+          <div><div class="pk" style="font-size:11px;color:var(--text-faint);font-family:var(--font-mono);">Comissão sócio</div><div class="pv" id="pPartnerCommission">R$ 0,00</div></div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-ghost" id="cancelFormBtn" type="button">Cancelar</button>
+        <button class="btn btn-primary" id="saveQuoteBtn" type="button">Salvar orçamento</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="section-title">Orçamentos salvos</div></div>
+    <div class="filter-tabs" id="filterTabs"></div>
+    <div id="quotesList"></div>
+  </div>
+
+</div>
+
+<div id="printArea"></div>
+
+<script>
+(function(){
+  let quotes = [];
+  let editingId = null;
+  let activeFilter = 'todos';
+  const TAX_RATE = 0.1333;
+  const STATUS_META = {
+    espera: {label: 'Em espera', cls: 'espera'},
+    vendido: {label: 'Vendido', cls: 'vendido'},
+    perdido: {label: 'Não vendido', cls: 'perdido'}
+  };
+  function statusOf(q){ return STATUS_META[q.status] ? q.status : 'espera'; }
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA6oseIiOfGJ9IUwiGzdtUgRVC6kY6q2R8",
+    authDomain: "orcamento-solar-38ecd.firebaseapp.com",
+    projectId: "orcamento-solar-38ecd",
+    storageBucket: "orcamento-solar-38ecd.firebasestorage.app",
+    messagingSenderId: "942858435820",
+    appId: "1:942858435820:web:02630c51f7bced63faf9c9"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  let quotesRef = null;
+  let unsubscribeSnapshot = null;
+
+  // Tabela oficial Solstar: mão de obra + material AC, por número de módulos (6 a 60)
+  const LABOR_TABLE = {
+    6:1980.00,7:1980.00,8:1980.00,9:1980.00,10:1980.00,
+    11:2073.60,12:2167.20,13:2260.80,14:2354.40,15:2448.00,
+    16:2541.60,17:2635.20,18:2728.80,19:2822.40,20:2916.00,
+    21:3009.60,22:3103.20,23:3196.80,24:3290.40,25:3384.00,
+    26:3477.60,27:3571.20,28:3664.80,29:3758.40,30:3852.00,
+    31:3945.60,32:4039.20,33:4123.80,34:4208.40,35:4293.00,
+    36:4377.60,37:4462.20,38:4546.80,39:4631.40,40:4716.00,
+    41:4800.60,42:4885.20,43:4969.80,44:5054.40,45:5139.00,
+    46:5223.60,47:5308.20,48:5392.80,49:5477.40,50:5562.00,
+    51:5646.60,52:5731.20,53:5815.80,54:5900.40,55:5985.00,
+    56:6069.60,57:6154.20,58:6238.80,59:6323.40,60:6408.00
+  };
+  const LABOR_STEP_BEYOND_60 = 84.60;
+
+  function uid(){ return Math.random().toString(36).slice(2,10); }
+  function todayISO(){ return new Date().toISOString().slice(0,10); }
+  function fmtBRL(v){ return (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'}); }
+  function fmtPct(v){ return ((v||0)*100).toLocaleString('pt-BR', {maximumFractionDigits:1}) + '%'; }
+  function escapeHtml(str){ const div = document.createElement('div'); div.textContent = str || ''; return div.innerHTML; }
+
+  function roundUp100(v){ return Math.ceil(v/100)*100; }
+  function laborFor(n){
+    if(!n || n < 6) n = 6;
+    if(n <= 60) return {value: roundUp100(LABOR_TABLE[n]), estimated: false};
+    return {value: roundUp100(LABOR_TABLE[60] + (n-60)*LABOR_STEP_BEYOND_60), estimated: true};
+  }
+  function homologFor(power){
+    if(!power) power = 0;
+    if(power < 10) return {value:500, estimated:false};
+    if(power <= 20) return {value:800, estimated:false};
+    if(power <= 30) return {value:900, estimated:false};
+    if(power <= 40) return {value:1700, estimated:false};
+    if(power <= 50) return {value:1300, estimated:false};
+    if(power <= 75) return {value:1500, estimated:false};
+    return {value:1500, estimated:true};
+  }
+
+  // Venda que fecha exatamente a margem alvo, dado: fornecedor(F), mao+homolog+estrutura(fixedCosts), taxa(t), margem(m)
+  // Lucro = (V-F)*(1-t) - fixedCosts = m*V  =>  V = [F*(1-t) + fixedCosts] / (1 - t - m)
+  function saleForTargetMargin(F, fixedCosts, m){
+    const denom = (1 - TAX_RATE - m);
+    if(denom <= 0) return 0;
+    return (F*(1-TAX_RATE) + fixedCosts) / denom;
+  }
+
+  function resolveSupplier(q){
+    if(q.supplierA !== undefined || q.supplierB !== undefined){
+      return q.selectedSupplier === 'B' ? (q.supplierB||0) : (q.supplierA||0);
+    }
+    return q.supplier || 0; // compatibilidade com orçamentos salvos antes da comparação A/B
+  }
+
+  function calc(q){
+    const supplierValue = resolveSupplier(q);
+    const laborAuto = laborFor(q.panelsQty);
+    const laborValue = (q.laborOverride !== null && q.laborOverride !== undefined && q.laborOverride !== '') ? q.laborOverride : laborAuto.value;
+    const power = q.panelsQty * q.panelWatt / 1000;
+    const homolog = homologFor(power);
+    const fixedCosts = laborValue + homolog.value + q.infra;
+    let saleValue;
+    if(q.saleMode === 'auto'){
+      saleValue = saleForTargetMargin(supplierValue, fixedCosts, q.marginTarget/100);
+    } else {
+      saleValue = q.saleManual;
+    }
+    const tax = (saleValue - supplierValue) * TAX_RATE;
+    const lucro = saleValue - supplierValue - fixedCosts - tax;
+    const perKwp = power ? saleValue / power : 0;
+    const margin = saleValue ? lucro / saleValue : 0;
+    let myCommission = null, partnerCommission = null;
+    if(q.split){
+      myCommission = lucro * (q.myPct/100);
+      partnerCommission = lucro * (q.partnerPct/100);
+    }
+    return {labor: {value: laborValue, estimated: laborAuto.estimated}, homolog, tax, lucro, power, perKwp, margin, saleValue, supplierValue, myCommission, partnerCommission};
+  }
+
+  function setSyncStatus(state, text){
+    const el = document.getElementById('syncStatus');
+    el.classList.remove('syncing','error');
+    if(state) el.classList.add(state);
+    document.getElementById('syncStatusText').textContent = text;
+  }
+
+  function startSync(uid){
+    setSyncStatus('syncing', 'Conectando…');
+    quotesRef = db.collection('users').doc(uid).collection('quotes');
+    unsubscribeSnapshot = quotesRef.onSnapshot((snapshot) => {
+      quotes = snapshot.docs.map(d => d.data());
+      render();
+      setSyncStatus(null, 'Sincronizado');
+    }, (err) => {
+      console.error(err);
+      setSyncStatus('error', 'Falha ao sincronizar');
+    });
+  }
+
+  function stopSync(){
+    if(unsubscribeSnapshot){ unsubscribeSnapshot(); unsubscribeSnapshot = null; }
+    quotesRef = null;
+    quotes = [];
+  }
+
+  async function saveQuote(data){
+    if(!quotesRef) return;
+    setSyncStatus('syncing', 'Salvando…');
+    try{
+      await quotesRef.doc(data.id).set(data);
+      setSyncStatus(null, 'Sincronizado');
+    }catch(e){
+      console.error(e);
+      setSyncStatus('error', 'Falha ao salvar — tente novamente');
+    }
+  }
+
+  async function deleteQuote(id){
+    if(!quotesRef) return;
+    setSyncStatus('syncing', 'Excluindo…');
+    try{
+      await quotesRef.doc(id).delete();
+      setSyncStatus(null, 'Sincronizado');
+    }catch(e){
+      console.error(e);
+      setSyncStatus('error', 'Falha ao excluir — tente novamente');
+    }
+  }
+
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errBox = document.getElementById('loginError');
+    errBox.style.display = 'none';
+    if(!email || !password){ errBox.textContent = 'Preencha e-mail e senha.'; errBox.style.display = 'block'; return; }
+    try{
+      await auth.signInWithEmailAndPassword(email, password);
+    }catch(e){
+      errBox.textContent = 'E-mail ou senha incorretos.';
+      errBox.style.display = 'block';
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', () => auth.signOut());
+
+  auth.onAuthStateChanged((user) => {
+    if(user){
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('appRoot').style.display = 'block';
+      startSync(user.uid);
+    } else {
+      stopSync();
+      document.getElementById('appRoot').style.display = 'none';
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('loginPassword').value = '';
+    }
+  });
+
+  function renderStats(){
+    document.getElementById('statCount').textContent = quotes.length;
+    let totalSale=0, totalLucro=0, marginSum=0, vendidoCount=0;
+    quotes.forEach(q => {
+      if(statusOf(q) !== 'vendido') return;
+      const c = calc(q);
+      totalSale+=c.saleValue; totalLucro+=c.lucro; marginSum+=c.margin; vendidoCount++;
+    });
+    document.getElementById('statTotal').textContent = fmtBRL(totalSale);
+    document.getElementById('statLucro').textContent = fmtBRL(totalLucro);
+    document.getElementById('statMargem').textContent = fmtPct(vendidoCount ? marginSum/vendidoCount : 0);
+  }
+
+  function renderFilterTabs(){
+    const counts = {todos: quotes.length, espera:0, vendido:0, perdido:0};
+    quotes.forEach(q => counts[statusOf(q)]++);
+    const tabs = [
+      {key:'todos', label:'Todos'},
+      {key:'espera', label:'Em espera'},
+      {key:'vendido', label:'Vendidos'},
+      {key:'perdido', label:'Não vendidos'}
+    ];
+    document.getElementById('filterTabs').innerHTML = tabs.map(t => `
+      <button class="filter-tab ${activeFilter===t.key?'active':''}" data-filter="${t.key}">${t.label} <span class="count">${counts[t.key]}</span></button>
+    `).join('');
+  }
+
+  function renderQuotes(){
+    const wrap = document.getElementById('quotesList');
+    const filtered = quotes.filter(q => activeFilter==='todos' || statusOf(q)===activeFilter);
+    if(filtered.length === 0){ wrap.innerHTML = '<div class="empty">Nenhum orçamento aqui.</div>'; return; }
+    wrap.innerHTML = filtered.slice().reverse().map(q => {
+      const c = calc(q);
+      const st = statusOf(q);
+      return `
+        <div class="quote-card">
+          <div class="quote-head" data-action="expand" data-id="${q.id}">
+            <div class="quote-left">
+              <div class="name">${escapeHtml(q.client)}<span class="status-badge ${STATUS_META[st].cls}">${STATUS_META[st].label}</span></div>
+              <div class="meta">${c.power.toFixed(2)} kWp · ${q.panelsQty} de ${q.panelWatt}W · ${q.invType==='micro'?'Micro':'String'} ${escapeHtml(q.invModel)}</div>
+            </div>
+            <div class="quote-right">
+              <div class="value">${fmtBRL(c.saleValue)}</div>
+              <div class="margin">${fmtPct(c.margin)} margem</div>
+            </div>
+          </div>
+          <div class="quote-body" id="qbody-${q.id}">
+            <div class="detail-grid">
+              <div><span class="dk">Fornecedor usado (${q.selectedSupplier || 'A'}):</span> <span class="dv">${fmtBRL(c.supplierValue)}</span></div>
+              ${(q.supplierA!==undefined && q.supplierB) ? `<div><span class="dk">${q.selectedSupplier==='B'?'Fornecedor A (não usado)':'Fornecedor B (não usado)'}:</span> <span class="dv">${fmtBRL(q.selectedSupplier==='B'?q.supplierA:q.supplierB)}</span></div>` : ''}
+              <div><span class="dk">Mão de obra:</span> <span class="dv">${fmtBRL(c.labor.value)}${c.labor.estimated?' (estimado)':''}</span></div>
+              <div><span class="dk">Homologação:</span> <span class="dv">${fmtBRL(c.homolog.value)}${c.homolog.estimated?' (conferir)':''}</span></div>
+              <div><span class="dk">Estrutura:</span> <span class="dv">${fmtBRL(q.infra)}</span></div>
+              <div><span class="dk">Nota fiscal:</span> <span class="dv">${fmtBRL(c.tax)}</span></div>
+              <div><span class="dk">Lucro líquido:</span> <span class="dv">${fmtBRL(c.lucro)}</span></div>
+              <div><span class="dk">R$ / kWp:</span> <span class="dv">${fmtBRL(c.perKwp)}</span></div>
+              <div><span class="dk">Modo de venda:</span> <span class="dv">${q.saleMode==='auto' ? 'Margem alvo '+q.marginTarget+'%' : 'Manual'}</span></div>
+              ${q.split ? `<div><span class="dk">Minha comissão (${q.myPct}%):</span> <span class="dv">${fmtBRL(c.myCommission)}</span></div>
+              <div><span class="dk">Comissão ${escapeHtml(q.partnerName)} (${q.partnerPct}%):</span> <span class="dv">${fmtBRL(c.partnerCommission)}</span></div>` : ''}
+            </div>
+            <div class="status-actions">
+              <span class="sa-label">Status:</span>
+              <button class="status-btn sb-espera ${st==='espera'?'current':''}" data-action="status" data-id="${q.id}" data-status="espera">Em espera</button>
+              <button class="status-btn sb-vendido ${st==='vendido'?'current':''}" data-action="status" data-id="${q.id}" data-status="vendido">Vendido</button>
+              <button class="status-btn sb-perdido ${st==='perdido'?'current':''}" data-action="status" data-id="${q.id}" data-status="perdido">Não vendido</button>
+            </div>
+            <div class="quote-actions">
+              <button class="btn btn-ghost btn-sm" data-action="edit" data-id="${q.id}">Editar</button>
+              <button class="btn btn-ghost btn-sm" data-action="print" data-id="${q.id}">Gerar orçamento p/ cliente</button>
+              <button class="btn btn-danger btn-sm" data-action="delete" data-id="${q.id}">Excluir</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function render(){ renderStats(); renderFilterTabs(); renderQuotes(); }
+
+  const formCard = document.getElementById('formCard');
+  const toggleFormBtn = document.getElementById('toggleFormBtn');
+  const cancelFormBtn = document.getElementById('cancelFormBtn');
+  toggleFormBtn.addEventListener('click', () => {
+    formCard.classList.toggle('open');
+    if(formCard.classList.contains('open')){ editingId = null; document.getElementById('saveQuoteBtn').textContent = 'Salvar orçamento'; resetForm(); }
+  });
+  cancelFormBtn.addEventListener('click', () => {
+    editingId = null;
+    document.getElementById('saveQuoteBtn').textContent = 'Salvar orçamento';
+    formCard.classList.remove('open');
+  });
+
+  document.getElementById('fSplit').addEventListener('change', (e) => {
+    document.getElementById('splitFields').style.display = e.target.checked ? 'grid' : 'none';
+    updatePreview();
+  });
+
+  document.querySelectorAll('input[name="saleMode"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const mode = document.querySelector('input[name="saleMode"]:checked').value;
+      document.getElementById('marginTargetRow').style.display = mode==='auto' ? 'grid' : 'none';
+      document.getElementById('manualSaleRow').style.display = mode==='manual' ? 'grid' : 'none';
+      updatePreview();
+    });
+  });
+
+  function resetForm(){
+    document.getElementById('fClient').value = '';
+    document.getElementById('fDate').value = todayISO();
+    document.getElementById('fStatus').value = 'espera';
+    document.getElementById('fPanelsQty').value = '';
+    document.getElementById('fLabor').value = '';
+    document.getElementById('fPanelWatt').value = 600;
+    document.getElementById('fInvType').value = 'micro';
+    document.getElementById('fInvModel').value = '';
+    document.getElementById('fSupplierA').value = '';
+    document.getElementById('fSupplierB').value = '';
+    document.getElementById('pickA').checked = true;
+    document.getElementById('fInfra').value = 2000;
+    document.getElementById('fMarginTarget').value = 25;
+    document.getElementById('fSaleManual').value = '';
+    document.getElementById('modeAuto').checked = true;
+    document.getElementById('marginTargetRow').style.display = 'grid';
+    document.getElementById('manualSaleRow').style.display = 'none';
+    document.getElementById('fSplit').checked = false;
+    document.getElementById('splitFields').style.display = 'none';
+    document.getElementById('fMyPct').value = 40;
+    document.getElementById('fPartnerPct').value = 60;
+    document.getElementById('fPartnerName').value = 'Pai';
+    updatePreview();
+  }
+
+  function loadQuoteIntoForm(id){
+    const q = quotes.find(x => x.id === id);
+    if(!q) return;
+    editingId = id;
+    formCard.classList.add('open');
+    document.getElementById('fClient').value = q.client;
+    document.getElementById('fDate').value = q.date || todayISO();
+    document.getElementById('fStatus').value = q.status || 'espera';
+    document.getElementById('fPanelsQty').value = q.panelsQty;
+    document.getElementById('fLabor').value = (q.laborOverride !== null && q.laborOverride !== undefined) ? q.laborOverride : laborFor(q.panelsQty).value;
+    document.getElementById('fPanelWatt').value = q.panelWatt;
+    document.getElementById('fInvType').value = q.invType;
+    document.getElementById('fInvModel').value = q.invModel;
+    const supplierA = q.supplierA !== undefined ? q.supplierA : (q.supplier || 0);
+    document.getElementById('fSupplierA').value = supplierA;
+    document.getElementById('fSupplierB').value = q.supplierB || '';
+    document.getElementById('pickA').checked = (q.selectedSupplier || 'A') === 'A';
+    document.getElementById('pickB').checked = (q.selectedSupplier || 'A') === 'B';
+    document.getElementById('fInfra').value = q.infra;
+    document.getElementById('modeAuto').checked = q.saleMode === 'auto';
+    document.getElementById('modeManual').checked = q.saleMode === 'manual';
+    document.getElementById('marginTargetRow').style.display = q.saleMode === 'auto' ? 'grid' : 'none';
+    document.getElementById('manualSaleRow').style.display = q.saleMode === 'manual' ? 'grid' : 'none';
+    document.getElementById('fMarginTarget').value = q.marginTarget;
+    document.getElementById('fSaleManual').value = q.saleManual || '';
+    document.getElementById('fSplit').checked = q.split;
+    document.getElementById('splitFields').style.display = q.split ? 'grid' : 'none';
+    document.getElementById('fMyPct').value = q.myPct;
+    document.getElementById('fPartnerPct').value = q.partnerPct;
+    document.getElementById('fPartnerName').value = q.partnerName;
+    document.getElementById('saveQuoteBtn').textContent = 'Atualizar orçamento';
+    updatePreview();
+    formCard.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  function readFormData(){
+    const panelsQty = parseInt(document.getElementById('fPanelsQty').value) || 0;
+    const panelWatt = parseFloat(document.getElementById('fPanelWatt').value) || 0;
+    return {
+      client: document.getElementById('fClient').value.trim(),
+      date: document.getElementById('fDate').value,
+      status: document.getElementById('fStatus').value,
+      panelsQty, panelWatt,
+      invType: document.getElementById('fInvType').value,
+      invModel: document.getElementById('fInvModel').value.trim(),
+      supplierA: parseFloat(document.getElementById('fSupplierA').value) || 0,
+      supplierB: parseFloat(document.getElementById('fSupplierB').value) || 0,
+      selectedSupplier: document.querySelector('input[name="supplierPick"]:checked').value,
+      laborOverride: document.getElementById('fLabor').value === '' ? null : parseFloat(document.getElementById('fLabor').value),
+      infra: parseFloat(document.getElementById('fInfra').value) || 0,
+      saleMode: document.querySelector('input[name="saleMode"]:checked').value,
+      marginTarget: parseFloat(document.getElementById('fMarginTarget').value) || 0,
+      saleManual: parseFloat(document.getElementById('fSaleManual').value) || 0,
+      split: document.getElementById('fSplit').checked,
+      myPct: parseFloat(document.getElementById('fMyPct').value) || 0,
+      partnerPct: parseFloat(document.getElementById('fPartnerPct').value) || 0,
+      partnerName: document.getElementById('fPartnerName').value.trim() || 'Sócio'
+    };
+  }
+
+  function renderHistRef(panelsQty){
+    const box = document.getElementById('histRef');
+    if(!panelsQty || quotes.length === 0){ box.style.display = 'none'; return; }
+    let matches = quotes.filter(q => q.panelsQty === panelsQty);
+    let label = 'mesma configuração — ' + panelsQty + ' painéis';
+    if(matches.length === 0){
+      matches = quotes.slice().sort((a,b) => Math.abs(a.panelsQty-panelsQty) - Math.abs(b.panelsQty-panelsQty)).slice(0,3);
+      label = 'configuração aproximada';
+    } else {
+      matches = matches.slice(-4).reverse();
+    }
+    if(matches.length === 0){ box.style.display = 'none'; return; }
+    const withVals = matches.map(q => { const c = calc(q); return {client:q.client, date:q.date, panelsQty:q.panelsQty, value:c.supplierValue}; });
+    const avg = withVals.reduce((s,x) => s+x.value, 0) / withVals.length;
+    box.style.display = 'block';
+    box.innerHTML = `<div class="hist-ref-title">📊 Histórico (${label}) — média ${fmtBRL(avg)}</div>` +
+      withVals.map(x => `<div class="hist-ref-item">${x.panelsQty} painéis · ${escapeHtml(x.client)||'—'} (${x.date||'—'}): ${fmtBRL(x.value)}</div>`).join('');
+  }
+
+  function updatePreview(){
+    const data = readFormData();
+    const c = calc(data);
+    document.getElementById('rPower').textContent = c.power.toFixed(2) + ' kWp';
+    document.getElementById('rLaborWarn').style.display = c.labor.estimated ? 'block' : 'none';
+    document.getElementById('rHomolog').textContent = fmtBRL(c.homolog.value);
+    document.getElementById('rHomologWarn').style.display = c.homolog.estimated ? 'block' : 'none';
+    document.getElementById('rSaleAuto').textContent = fmtBRL(saleForTargetMargin(c.supplierValue, c.labor.value+c.homolog.value+data.infra, data.marginTarget/100));
+    renderHistRef(data.panelsQty);
+
+    document.getElementById('pLucro').textContent = fmtBRL(c.lucro);
+    document.getElementById('pSale').textContent = fmtBRL(c.saleValue);
+    document.getElementById('pMargem').textContent = fmtPct(c.margin);
+    document.getElementById('pKwp').textContent = fmtBRL(c.perKwp);
+    document.getElementById('bLabor').textContent = fmtBRL(c.labor.value);
+    document.getElementById('bHomolog').textContent = fmtBRL(c.homolog.value);
+    document.getElementById('bInfra').textContent = fmtBRL(data.infra);
+    document.getElementById('bTax').textContent = fmtBRL(c.tax);
+    document.getElementById('pCommissionLine').style.display = data.split ? 'flex' : 'none';
+    if(data.split){
+      document.getElementById('pMyCommission').textContent = fmtBRL(c.myCommission);
+      document.getElementById('pPartnerCommission').textContent = fmtBRL(c.partnerCommission);
+    }
+  }
+
+  document.getElementById('fPanelsQty').addEventListener('input', () => {
+    const qty = parseInt(document.getElementById('fPanelsQty').value) || 0;
+    document.getElementById('fLabor').value = laborFor(qty).value;
+    updatePreview();
+  });
+
+  ['fPanelWatt','fSupplierA','fSupplierB','fLabor','fInfra','fMarginTarget','fSaleManual','fMyPct','fPartnerPct'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updatePreview);
+  });
+  document.querySelectorAll('input[name="supplierPick"]').forEach(radio => {
+    radio.addEventListener('change', updatePreview);
+  });
+
+  document.getElementById('saveQuoteBtn').addEventListener('click', async () => {
+    const data = readFormData();
+    const supplierValue = data.selectedSupplier === 'B' ? data.supplierB : data.supplierA;
+    if(!data.client || !data.panelsQty || !supplierValue){
+      alert('Preencha ao menos cliente, número de painéis e o valor do fornecedor selecionado.');
+      return;
+    }
+    if(editingId){
+      data.id = editingId;
+      editingId = null;
+    } else {
+      data.id = uid();
+    }
+    await saveQuote(data);
+    document.getElementById('saveQuoteBtn').textContent = 'Salvar orçamento';
+    formCard.classList.remove('open');
+  });
+
+  document.getElementById('filterTabs').addEventListener('click', (e) => {
+    const btn = e.target.closest('.filter-tab');
+    if(!btn) return;
+    activeFilter = btn.dataset.filter;
+    render();
+  });
+
+  document.getElementById('quotesList').addEventListener('click', async (e) => {
+    const expandTarget = e.target.closest('[data-action="expand"]');
+    const deleteTarget = e.target.closest('[data-action="delete"]');
+    const printTarget = e.target.closest('[data-action="print"]');
+    const editTarget = e.target.closest('[data-action="edit"]');
+    const statusTarget = e.target.closest('[data-action="status"]');
+    if(statusTarget){
+      e.stopPropagation();
+      const q = quotes.find(x => x.id === statusTarget.dataset.id);
+      if(q){
+        q.status = statusTarget.dataset.status;
+        await saveQuote(q);
+      }
+      return;
+    }
+    if(editTarget){
+      e.stopPropagation();
+      loadQuoteIntoForm(editTarget.dataset.id);
+      return;
+    }
+    if(deleteTarget){
+      e.stopPropagation();
+      if(deleteTarget.dataset.confirming === '1'){
+        await deleteQuote(deleteTarget.dataset.id);
+      } else {
+        deleteTarget.dataset.confirming = '1';
+        deleteTarget.textContent = 'Clique de novo pra confirmar';
+        setTimeout(() => {
+          if(deleteTarget.isConnected){ deleteTarget.dataset.confirming = '0'; deleteTarget.textContent = 'Excluir'; }
+        }, 3000);
+      }
+      return;
+    }
+    if(printTarget){ e.stopPropagation(); printQuote(printTarget.dataset.id); return; }
+    if(expandTarget){ const body = document.getElementById('qbody-'+expandTarget.dataset.id); if(body) body.classList.toggle('open'); }
+  });
+
+  function printQuote(id){
+    const q = quotes.find(x => x.id === id);
+    if(!q) return;
+    const c = calc(q);
+    const area = document.getElementById('printArea');
+    area.innerHTML = `
+      <div class="pq-header">
+        <div><div class="pq-title">Orçamento — Sistema de Energia Solar</div>
+        <div class="pq-sub">Cliente: ${escapeHtml(q.client)} · Data: ${q.date || ''}</div></div>
+      </div>
+      <div class="pq-row"><span>Potência do sistema</span><span>${c.power.toFixed(2)} kWp</span></div>
+      <div class="pq-row"><span>Painéis</span><span>${q.panelsQty} de ${q.panelWatt}W</span></div>
+      <div class="pq-row"><span>Inversor</span><span>${q.invType==='micro'?'Microinversor':'Inversor string'} — ${escapeHtml(q.invModel)}</span></div>
+      <div class="pq-total"><span>Valor total do projeto</span><span>${fmtBRL(c.saleValue)}</span></div>
+    `;
+    window.print();
+  }
+
+})();
+</script>
+</body>
+</html>
