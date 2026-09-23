@@ -109,6 +109,12 @@
   .status-badge.espera{ background: rgba(255,176,32,.12); color: var(--amber); border: 1px solid rgba(255,176,32,.3); }
   .status-badge.vendido{ background: rgba(53,211,153,.12); color: var(--green); border: 1px solid rgba(53,211,153,.3); }
   .status-badge.perdido{ background: rgba(255,99,99,.12); color: var(--red); border: 1px solid rgba(255,99,99,.3); }
+  .search-toggle-row{ display:flex; align-items:center; gap:10px; margin-bottom: 14px; }
+  .icon-btn{ width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:9px; border:1px solid var(--border); background:var(--surface); color:var(--text-muted); cursor:pointer; transition: all .12s ease; flex-shrink:0; font-size:15px; }
+  .icon-btn:hover{ background:var(--surface-2); color:var(--text); }
+  .icon-btn.active{ border-color: var(--amber); color: var(--amber); }
+  .search-box{ display:none; flex:1; max-width: 320px; }
+  .search-box.open{ display:block; }
   .filter-tabs{ display:flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
   .filter-tab{ font-family: var(--font-mono); font-size: 12px; padding: 7px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; transition: all .15s ease; }
   .filter-tab:hover{ background: var(--surface-2); }
@@ -289,6 +295,10 @@
 
   <div class="section">
     <div class="section-head"><div class="section-title">Orçamentos salvos</div></div>
+    <div class="search-toggle-row">
+      <button class="icon-btn" id="searchToggleBtn" type="button" title="Buscar por cliente">🔍</button>
+      <div class="search-box" id="searchBox"><input type="text" id="fSearchClient" placeholder="Buscar por nome do cliente..."></div>
+    </div>
     <div class="filter-tabs" id="filterTabs"></div>
     <div id="quotesList"></div>
   </div>
@@ -302,6 +312,7 @@
   let quotes = [];
   let editingId = null;
   let activeFilter = 'todos';
+  let searchQuery = '';
   const TAX_RATE = 0.1333;
   const STATUS_META = {
     espera: {label: 'Em espera', cls: 'espera'},
@@ -511,8 +522,15 @@
 
   function renderQuotes(){
     const wrap = document.getElementById('quotesList');
-    const filtered = quotes.filter(q => activeFilter==='todos' || statusOf(q)===activeFilter);
-    if(filtered.length === 0){ wrap.innerHTML = '<div class="empty">Nenhum orçamento aqui.</div>'; return; }
+    const filtered = quotes.filter(q => {
+      if(activeFilter!=='todos' && statusOf(q)!==activeFilter) return false;
+      if(searchQuery && !(q.client||'').toLowerCase().includes(searchQuery)) return false;
+      return true;
+    });
+    if(filtered.length === 0){
+      wrap.innerHTML = `<div class="empty">${searchQuery ? 'Nenhum cliente encontrado.' : 'Nenhum orçamento aqui.'}</div>`;
+      return;
+    }
     wrap.innerHTML = filtered.slice().reverse().map(q => {
       const c = calc(q);
       const st = statusOf(q);
@@ -746,6 +764,26 @@
     await saveQuote(data);
     document.getElementById('saveQuoteBtn').textContent = 'Salvar orçamento';
     formCard.classList.remove('open');
+  });
+
+  const searchToggleBtn = document.getElementById('searchToggleBtn');
+  const searchBox = document.getElementById('searchBox');
+  const fSearchClient = document.getElementById('fSearchClient');
+  searchToggleBtn.addEventListener('click', () => {
+    const opening = !searchBox.classList.contains('open');
+    searchBox.classList.toggle('open', opening);
+    searchToggleBtn.classList.toggle('active', opening);
+    if(opening){
+      fSearchClient.focus();
+    } else {
+      fSearchClient.value = '';
+      searchQuery = '';
+      renderQuotes();
+    }
+  });
+  fSearchClient.addEventListener('input', () => {
+    searchQuery = fSearchClient.value.trim().toLowerCase();
+    renderQuotes();
   });
 
   document.getElementById('filterTabs').addEventListener('click', (e) => {
