@@ -19,7 +19,9 @@ Responda SOMENTE com um JSON, sem texto em volta, neste formato:
 Não invente números: se não estiver legível, use null.`,
   conta: `A imagem/documento é uma conta de energia elétrica de uma distribuidora brasileira, de um cliente com geração distribuída (energia solar).
 Extraia os dados e responda SOMENTE com um JSON, sem texto em volta, neste formato:
-{"mes_referencia": "AAAA-MM" ou null (mês de referência da conta),
+{"titular": texto ou null (nome do titular / cliente da conta, como impresso),
+ "cidade": texto ou null (cidade do endereço da unidade consumidora),
+ "mes_referencia": "AAAA-MM" ou null (mês de referência da conta),
  "leitura_anterior": "AAAA-MM-DD" ou null (data da leitura anterior do medidor),
  "leitura_atual": "AAAA-MM-DD" ou null (data da leitura atual do medidor),
  "valor_total": número ou null (total a pagar, em R$),

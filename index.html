@@ -190,6 +190,21 @@
   #tabPos .ai-status.ok{ color: var(--green); }
   #tabPos .ai-status.err{ color: var(--red); }
   #tabPos input.ai-filled{ border-color: var(--green); }
+  #tabPos .step{ background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+  #tabPos .step .preview{ background: var(--surface); }
+  #tabPos .step input, #tabPos .step select{ background: var(--surface); }
+  #tabPos .step-head{ font-family: var(--font-display); font-weight: 600; font-size: 15px; margin-bottom: 12px; display:flex; align-items:center; gap: 10px; }
+  #tabPos .step-n{ width: 24px; height: 24px; border-radius: 50%; background: var(--amber); color: #1a1206; font-size: 13px; display:inline-flex; align-items:center; justify-content:center; font-family: var(--font-mono); }
+  #tabPos .checkbox-details summary{ cursor: pointer; font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); }
+  #tabPos .read-summary{ font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); margin-top: 10px; line-height: 1.6; }
+  #tabPos .gen-row{ display:grid; grid-template-columns: 1.3fr 1fr 0.8fr auto; gap: 10px; align-items:end; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  #tabPos .gen-row:last-child{ border-bottom: none; }
+  #tabPos .gen-row .gm{ font-weight: 600; font-size: 14px; }
+  #tabPos .gen-row .gs{ font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  #tabPos .gen-row .gs.ok{ color: var(--green); } #tabPos .gen-row .gs.miss{ color: var(--amber); } #tabPos .gen-row .gs.err{ color: var(--red); }
+  #tabPos .gen-row label{ font-size: 11px; margin-bottom: 3px; }
+  #tabPos .gen-row input{ padding: 8px 10px; font-family: var(--font-mono); }
+  @media (max-width: 640px){ #tabPos .gen-row{ grid-template-columns: 1fr 1fr; } #tabPos .gen-row > div:first-child, #tabPos .gen-row > div:last-child{ grid-column: 1 / -1; } }
   .toast{ position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 10px 16px; border-radius: 10px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 10; }
   .toast.show{ opacity: 1; }
   @media print{ .toast{ display:none; } }
@@ -389,6 +404,7 @@
 
   <!-- PENDÊNCIAS -->
   <div class="section">
+    <div style="margin-bottom:18px;"><button class="btn btn-primary" data-act="new-bill" style="width:100%; padding:14px; font-size:15px;">📷 Nova conta de luz</button></div>
     <div class="section-head"><div class="section-title">O que fazer agora</div><div id="pvSyncStatus" class="sync-status syncing"><span class="sync-dot"></span><span id="pvSyncStatusText">Conectando…</span></div></div>
     <div id="todoList"></div>
   </div>
@@ -479,42 +495,60 @@
     </div>
   </div>
 
-  <!-- FORM CONTA -->
+  <!-- FORM CONTA (passo a passo) -->
   <div class="form-card" id="billForm">
-    <div class="form-card-title" id="billFormTitle">Lançar conta de luz</div>
-    <div class="ai-row">
-      <button class="btn btn-ghost btn-sm" type="button" data-act="ai-pick" data-kind="conta">📷 Ler foto da conta</button>
-      <span class="ai-status" id="aiStatus-conta">Foto ou PDF da conta. Lê as datas de leitura, o valor e os kWh.</span>
-    </div>
-    <div class="form-row three">
-      <div><label>Cliente</label><select id="bClient" class="client-select"></select></div>
-      <div><label>Leitura anterior</label><input type="date" id="bStart"></div>
-      <div><label>Leitura atual</label><input type="date" id="bEnd"></div>
-    </div>
-    <div class="form-row three">
-      <div><label>Valor pago (R$)</label><input type="number" id="bPaid" step="0.01" placeholder="145.00"></div>
-      <div><label>Energia comprada da rede (kWh)</label><input type="number" id="bGrid" step="0.01" placeholder="Consumo medido"></div>
-      <div><label>Energia injetada (kWh)</label><input type="number" id="bInjected" step="0.01" placeholder="Injetada"></div>
-    </div>
-    <div class="form-row">
-      <div><label>Tarifa com impostos (R$/kWh)</label><input type="number" id="bTariff" step="0.0001"><div class="hint">Vem do cadastro ou da leitura da conta.</div></div>
-      <div><label>Observações</label><input type="text" id="bNotes" placeholder="Opcional"></div>
-    </div>
-    <div class="preview">
-      <div class="preview-title">Economia no período da conta</div>
-      <div class="preview-grid">
-        <div class="preview-item"><div class="pk">Período</div><div class="pv" id="bpPeriod">—</div></div>
-        <div class="preview-item"><div class="pk">Geração no período</div><div class="pv" id="bpGen">—</div></div>
-        <div class="preview-item"><div class="pk">Conta sem solar</div><div class="pv" id="bpNoSolar">—</div></div>
-        <div class="preview-item green"><div class="pk">Economia</div><div class="pv" id="bpEco">—</div></div>
+    <div class="form-card-title" id="billFormTitle">Nova conta de luz</div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-n">1</span> Foto da conta de luz</div>
+      <div class="ai-row">
+        <button class="btn btn-primary btn-sm" type="button" data-act="ai-pick" data-kind="conta">📷 Enviar foto da conta</button>
+        <span class="ai-status" id="aiStatus-conta">Foto ou PDF. O sistema lê o cliente, o período de cobrança, o valor e os kWh.</span>
       </div>
-      <div class="breakdown" id="bpBreakdown"></div>
-      <div id="bpWarn"></div>
-      <div class="msg-box" id="bpMsg" style="display:none;"></div>
+      <div class="form-row">
+        <div><label>Cliente</label><select id="bClient" class="client-select"></select></div>
+        <div id="bClientMatch"></div>
+      </div>
+      <details class="checkbox-details" id="bDetails">
+        <summary>Conferir ou corrigir os números lidos</summary>
+        <div class="form-row three" style="margin-top:12px;">
+          <div><label>Leitura anterior</label><input type="date" id="bStart"></div>
+          <div><label>Leitura atual</label><input type="date" id="bEnd"></div>
+          <div><label>Valor pago (R$)</label><input type="number" id="bPaid" step="0.01"></div>
+        </div>
+        <div class="form-row three">
+          <div><label>Energia comprada da rede (kWh)</label><input type="number" id="bGrid" step="0.01"></div>
+          <div><label>Energia injetada (kWh)</label><input type="number" id="bInjected" step="0.01"></div>
+          <div><label>Tarifa com impostos (R$/kWh)</label><input type="number" id="bTariff" step="0.0001"></div>
+        </div>
+        <div class="form-row" style="margin-bottom:0;"><div style="grid-column:1/-1;"><label>Observações</label><input type="text" id="bNotes" placeholder="Opcional"></div></div>
+      </details>
+      <div class="read-summary" id="bReadSummary"></div>
     </div>
-    <div class="form-actions">
+
+    <div class="step" id="bStep2">
+      <div class="step-head"><span class="step-n">2</span> Prints de geração do período</div>
+      <div id="bGenList"><div class="hint">Envie a conta primeiro: o sistema vai dizer quais prints precisa.</div></div>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="step-n">3</span> Resultado</div>
+      <div class="preview" style="margin-bottom:0;">
+        <div class="preview-grid">
+          <div class="preview-item"><div class="pk">Período</div><div class="pv" id="bpPeriod">—</div></div>
+          <div class="preview-item"><div class="pk">Geração no período</div><div class="pv" id="bpGen">—</div></div>
+          <div class="preview-item"><div class="pk">Conta sem solar</div><div class="pv" id="bpNoSolar">—</div></div>
+          <div class="preview-item green"><div class="pk">Economia</div><div class="pv" id="bpEco">—</div></div>
+        </div>
+        <div class="breakdown" id="bpBreakdown"></div>
+        <div id="bpWarn"></div>
+        <div class="msg-box" id="bpMsg" style="display:none;"></div>
+      </div>
+    </div>
+
+    <div class="form-actions" style="margin-top:16px;">
       <button class="btn btn-ghost" id="bCancel" type="button">Cancelar</button>
-      <button class="btn btn-primary" id="bSave" type="button">Salvar conta</button>
+      <button class="btn btn-primary" id="bSave" type="button">Salvar</button>
     </div>
   </div>
 
@@ -523,9 +557,9 @@
     <div class="section-head">
       <div class="section-title">Clientes</div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="btn btn-ghost" data-act="new-gen">+ Geração</button>
-        <button class="btn btn-ghost" data-act="new-bill">+ Conta</button>
-        <button class="btn btn-primary" id="newClientBtn">+ Novo cliente</button>
+        <button class="btn btn-primary" data-act="new-bill">+ Nova conta de luz</button>
+        <button class="btn btn-ghost" data-act="new-gen">+ Print de geração</button>
+        <button class="btn btn-ghost" id="newClientBtn">+ Novo cliente</button>
       </div>
     </div>
     <div class="pv-search"><input type="text" id="search" placeholder="Buscar cliente…"></div>
@@ -1217,7 +1251,7 @@
     const map = {}; let total = 0;
     for(let d = new Date(s); d < e; d.setDate(d.getDate()+1)){
       const k = monthKey(d.getFullYear(), d.getMonth());
-      if(!map[k]) map[k] = {key:k, days:0, lastDay:0};
+      if(!map[k]) map[k] = {key:k, days:0, firstDay:d.getDate(), lastDay:0};
       map[k].days++; map[k].lastDay = d.getDate(); total++;
     }
     return {total, months: Object.values(map)};
@@ -1346,7 +1380,7 @@
         const k = calcBill(b, c);
         const per = `${dateBR(b.start)} a ${dateBR(b.end)}`;
         k.missing.forEach(mk => {
-          if(mk !== pm) todos.push({level:'amber', client:c, why:`Conta ${per}: falta o print de ${keyLabel(mk)}${mk===currentKey()?' (pode ser parcial, até hoje)':''}`, action:'new-gen', month:mk});
+          todos.push({level:'amber', client:c, rec:b, why:`Conta ${per}: falta o print de ${keyLabel(mk)}${mk===currentKey()?' (pode ser parcial, até hoje)':''}`, action:'edit-bill'});
         });
         if(k.eco !== null && !b.sent) todos.push({level:'blue', client:c, rec:b, why:`Mensagem da conta ${per} não enviada`, action:'show-msg'});
       });
@@ -1378,6 +1412,7 @@
     el.innerHTML = todos.sort((a,b) => order[a.level]-order[b.level]).map(t => {
       let btn = '';
       if(t.action === 'new-gen') btn = `<button class="btn btn-primary btn-sm" data-act="new-gen" data-client="${t.client.id}" data-month="${t.month}">Lançar print</button>`;
+      if(t.action === 'edit-bill') btn = `<button class="btn btn-primary btn-sm" data-act="edit-bill" data-id="${t.rec.id}">Enviar print</button>`;
       if(t.action === 'mark-checked') btn = `<button class="btn btn-ghost btn-sm" data-act="mark-checked" data-id="${t.rec.id}">Já verifiquei</button>`;
       if(t.action === 'show-msg') btn = `<button class="btn btn-green btn-sm" data-act="show-msg" data-id="${t.rec.id}">Ver mensagem</button>`;
       return `<div class="todo-item ${t.level==='red'?'red':(t.level==='blue'?'blue':'')}">
@@ -1455,7 +1490,7 @@
 
   function fillClientSelects(selectedId){
     const opts = clients.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'')).map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
-    document.querySelectorAll('#tabPos .client-select').forEach(s => { const v = s.value; s.innerHTML = opts; s.value = selectedId || v || (clients[0] && clients[0].id) || ''; });
+    document.querySelectorAll('#tabPos .client-select').forEach(s => { const v = s.value; s.innerHTML = '<option value="">— Escolha o cliente —</option>' + opts; s.value = selectedId !== undefined && selectedId !== null ? selectedId : (v || ''); });
   }
 
   function render(){
@@ -1609,75 +1644,191 @@
     }
   });
 
-  // ---------- Conta ----------
+  // ---------- Conta (passo a passo: conta → prints de geração → resultado) ----------
+  let draftGens = {};          // mês → {kwh, days}: prints lidos nesta conta, salvos junto com ela
+  let billPresetClient = false; // a conta foi aberta a partir de um cliente específico
+
   function readBillForm(){
     return {type:'conta', clientId: document.getElementById('bClient').value,
       start: document.getElementById('bStart').value || null, end: document.getElementById('bEnd').value || null,
       paid: num('bPaid'), grid: num('bGrid'), injected: num('bInjected'), tariff: num('bTariff'), notes: txt('bNotes')};
   }
+  function draftRecs(clientId){
+    return Object.entries(draftGens).filter(([k,v]) => has(v.kwh)).map(([k,v]) => ({type:'geracao', id: genId(clientId, k), clientId, month: k, kwh: v.kwh, days: v.days}));
+  }
+  function withDrafts(clientId, extra, fn){
+    const saved = recs;
+    const ds = draftRecs(clientId).concat(extra || []);
+    const ids = new Set(ds.map(x => x.id));
+    recs = recs.filter(r => !ids.has(r.id)).concat(ds);
+    try{ return fn(); } finally { recs = saved; }
+  }
+  function genValuesFor(clientId, key){
+    if(draftGens[key]) return draftGens[key];
+    const g = clientId ? genFor(clientId, key) : null;
+    return g ? {kwh: g.kwh, days: g.days, saved: true} : null;
+  }
+
+  function renderGenList(){
+    const el = document.getElementById('bGenList');
+    const d = readBillForm();
+    const per = periodByMonth(d.start, d.end);
+    if(!per){ el.innerHTML = '<div class="hint">Envie a conta primeiro: o sistema vai dizer quais prints precisa.</div>'; return; }
+    el.innerHTML = per.months.map(pm => {
+      const v = genValuesFor(d.clientId, pm.key);
+      const dim = daysInMonth(pm.key);
+      const {m} = parseKey(pm.key);
+      const nome = MONTHS_FULL[m].charAt(0).toUpperCase() + MONTHS_FULL[m].slice(1) + '/' + parseKey(pm.key).y;
+      let st;
+      if(v && has(v.kwh)){
+        const cov = has(v.days) ? v.days : dim;
+        st = `<div class="gs ok" id="gst-${pm.key}">✓ ${fmtNum(v.kwh)} kWh ${cov >= dim ? '(mês completo)' : '(até o dia ' + cov + ')'}${v.saved && !draftGens[pm.key] ? ' · já estava salvo' : ''}</div>`;
+        if(cov < pm.lastDay) st += `<div class="gs miss">O print vai até o dia ${cov} e a conta até o dia ${pm.lastDay}: uso a média diária.</div>`;
+      } else {
+        st = `<div class="gs miss" id="gst-${pm.key}">Falta o print deste mês${pm.key === currentKey() ? ' (pode ser parcial, até hoje)' : ''}</div>`;
+      }
+      return `<div class="gen-row">
+        <div><div class="gm">${nome}</div><div class="gs">${pm.days} dias da conta (dia ${pm.firstDay} a ${pm.lastDay})</div>${st}</div>
+        <div><label>kWh no print</label><input type="number" step="0.01" data-gm="${pm.key}" data-f="kwh" value="${v && has(v.kwh) ? v.kwh : ''}"></div>
+        <div><label>Até o dia</label><input type="number" min="1" max="${dim}" data-gm="${pm.key}" data-f="days" value="${v ? (has(v.days) ? v.days : dim) : ''}"></div>
+        <div><button class="btn btn-primary btn-sm" type="button" data-act="ai-pick" data-kind="geracao-bill" data-month="${pm.key}">📷 Print de ${MONTHS[m]}</button></div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('bGenList').addEventListener('input', e => {
+    const inp = e.target.closest('input[data-gm]'); if(!inp) return;
+    const key = inp.dataset.gm;
+    const row = inp.closest('.gen-row');
+    const kwh = parseFloat(row.querySelector('[data-f=kwh]').value);
+    let days = parseInt(row.querySelector('[data-f=days]').value);
+    if(isNaN(days) || days >= daysInMonth(key)) days = null;
+    draftGens[key] = {kwh: isNaN(kwh) ? null : kwh, days};
+    updateBillPreview();
+  });
+
   function updateBillPreview(){
     const d = readBillForm();
     d.id = editingBillId || '__draft__';
     const c = clientById(d.clientId);
-    const k = calcBill(d, c);
-    document.getElementById('bpPeriod').textContent = k.days ? `${dateBR(d.start)} a ${dateBR(d.end)} (${k.days} dias)` : '—';
+    const per = periodByMonth(d.start, d.end);
+    document.getElementById('bReadSummary').innerHTML = (per || has(d.paid)) ?
+      [per ? `Período: <b>${dateBR(d.start)} a ${dateBR(d.end)}</b> (${per.total} dias)` : null,
+       has(d.paid) ? `Pago: <b>${fmtBRL(d.paid)}</b>` : null,
+       has(d.grid) ? `Comprada da rede: <b>${fmtNum(d.grid)} kWh</b>` : null,
+       has(d.injected) ? `Injetada: <b>${fmtNum(d.injected)} kWh</b>` : null,
+       has(d.tariff) ? `Tarifa: <b>R$ ${fmtNum(d.tariff,4)}</b>` : null].filter(Boolean).join(' · ') : '';
+    const k = c ? withDrafts(c.id, [d], () => calcBill(d, c)) : calcBill(d, c);
+    document.getElementById('bpPeriod').textContent = k.days ? `${k.days} dias` : '—';
     document.getElementById('bpGen').textContent = k.gen !== null ? fmtNum(k.gen) + ' kWh' : (k.missing.length ? 'falta print' : '—');
     document.getElementById('bpNoSolar').textContent = k.semSolar !== null ? fmtBRL(k.semSolar) : '—';
     document.getElementById('bpEco').textContent = k.eco !== null ? fmtBRL(k.eco) : '—';
     const bd = document.getElementById('bpBreakdown');
-    if(k.parts.length){
+    if(k.parts.length && k.gen !== null){
       bd.style.display = 'grid';
-      bd.innerHTML = k.parts.map(p => `<div>${keyLabel(p.key)}: ${p.days} dias → ${p.kwh!==null ? fmtNum(p.kwh) + ' kWh' : 'sem print'}</div>`).join('') +
+      bd.innerHTML = k.parts.map(p => `<div>${keyLabel(p.key)}: ${p.days} dias → ${fmtNum(p.kwh)} kWh</div>`).join('') +
         (k.autoconsumo !== null ? `<div>Autoconsumo (gerado − injetado): ${fmtNum(k.autoconsumo)} kWh</div><div>Consumo total da casa: ${fmtNum(k.consumoTotal)} kWh</div>` : '');
     } else { bd.style.display = 'none'; bd.innerHTML = ''; }
     const w = [];
-    if(k.missing.length) w.push(`Falta o print de ${k.missing.map(keyLabel).join(' e ')} deste cliente para calcular a economia. Pode salvar a conta agora: a economia aparece quando o print entrar.`);
-    w.push(...k.warnings);
+    if(!c && per) w.push('Escolha o cliente (ou crie pelo botão ao lado).');
+    if(k.missing.length) w.push(`Falta o print de ${k.missing.map(keyLabel).join(' e ')}. Pode salvar agora: a economia aparece quando o print entrar.`);
+    w.push(...k.warnings.filter(x => !x.startsWith('O print de')));
     document.getElementById('bpWarn').innerHTML = w.map(x => `<div class="warn-note">⚠ ${escapeHtml(x)}</div>`).join('');
     const msgEl = document.getElementById('bpMsg');
     if(c && k.eco !== null){
-      const saved = recs; recs = recs.filter(r => r.id !== d.id).concat([d]);
-      msgEl.textContent = billMessage(d, c); recs = saved;
+      msgEl.textContent = withDrafts(c.id, [d], () => billMessage(d, c));
       msgEl.style.display = 'block';
     } else msgEl.style.display = 'none';
   }
+
   function openBillForm(opts){
     opts = opts || {};
-    if(clients.length === 0){ toast('Cadastre um cliente primeiro.'); return; }
     const b = opts.rec || null;
     editingBillId = b ? b.id : null;
-    document.getElementById('billFormTitle').textContent = b ? 'Editar conta de luz' : 'Lançar conta de luz';
-    aiStatus('conta', '', 'Foto ou PDF da conta. Lê as datas de leitura, o valor e os kWh.');
-    fillClientSelects(b ? b.clientId : opts.clientId);
+    draftGens = {};
+    billPresetClient = !!(b || opts.clientId);
+    document.getElementById('billFormTitle').textContent = b ? 'Conta de luz' : 'Nova conta de luz';
+    aiStatus('conta', '', 'Foto ou PDF. O sistema lê o cliente, o período de cobrança, o valor e os kWh.');
+    document.getElementById('bClientMatch').innerHTML = '';
+    fillClientSelects(b ? b.clientId : (opts.clientId || ''));
     const v = (id, val) => document.getElementById(id).value = has(val) ? val : '';
     v('bStart', b&&b.start); v('bEnd', b&&b.end); v('bPaid', b&&b.paid); v('bGrid', b&&b.grid); v('bInjected', b&&b.injected); v('bNotes', b&&b.notes);
     const c = clientById(document.getElementById('bClient').value);
     v('bTariff', b && has(b.tariff) ? b.tariff : (c && c.tariff));
+    document.getElementById('bDetails').open = false;
     openCard('billForm');
+    renderGenList();
     updateBillPreview();
+    if(b && calcBill(b, c).missing.length) document.getElementById('bStep2').scrollIntoView({behavior:'smooth', block:'start'});
   }
   document.getElementById('bClient').addEventListener('change', () => {
     const c = clientById(document.getElementById('bClient').value);
-    document.getElementById('bTariff').value = (c && c.tariff) ? c.tariff : '';
-    updateBillPreview();
+    if(c && c.tariff && !document.getElementById('bTariff').value) document.getElementById('bTariff').value = c.tariff;
+    renderGenList(); updateBillPreview();
   });
-  ['bStart','bEnd','bPaid','bGrid','bInjected','bTariff'].forEach(id => document.getElementById(id).addEventListener('input', updateBillPreview));
-  ['bStart','bEnd'].forEach(id => document.getElementById(id).addEventListener('change', updateBillPreview));
-  document.getElementById('bCancel').addEventListener('click', () => { editingBillId = null; closeForms(); });
+  ['bPaid','bGrid','bInjected','bTariff'].forEach(id => document.getElementById(id).addEventListener('input', updateBillPreview));
+  ['bStart','bEnd'].forEach(id => document.getElementById(id).addEventListener('change', () => { renderGenList(); updateBillPreview(); }));
+  document.getElementById('bCancel').addEventListener('click', () => { editingBillId = null; draftGens = {}; closeForms(); });
   document.getElementById('bSave').addEventListener('click', async () => {
     const d = readBillForm();
     if(!d.clientId){ toast('Escolha o cliente.'); return; }
-    if(!d.start || !d.end || !periodByMonth(d.start, d.end)){ toast('Preencha as datas de leitura (anterior e atual).'); return; }
+    if(!d.start || !d.end || !periodByMonth(d.start, d.end)){ toast('Faltam as datas de leitura. Envie a foto da conta ou preencha em "Conferir números".'); document.getElementById('bDetails').open = true; return; }
     const prev = editingBillId ? recs.find(r => r.id === editingBillId) : null;
     const data = Object.assign(d, {id: editingBillId || uid(), sent: prev ? !!prev.sent : false, createdAt: (prev && prev.createdAt) || new Date().toISOString()});
-    // guarda a tarifa no cadastro do cliente se ele ainda não tiver
     const c = clientById(d.clientId);
     if(c && !c.tariff && d.tariff) await write(clientsRef, Object.assign({}, c, {tariff: d.tariff}));
+    for(const g of draftRecs(d.clientId)){
+      await write(recsRef, Object.assign(g, {checked:false, sent:false, updatedAt: new Date().toISOString()}));
+    }
     if(await write(recsRef, data, editingBillId ? 'Conta atualizada' : 'Conta salva')){
-      editingBillId = null; closeForms();
-      setTimeout(() => { const r = recs.find(x => x.id === data.id) || data; if(calcBill(r, clientById(r.clientId)).eco !== null) openMsgCard(r); }, 300);
+      editingBillId = null; draftGens = {}; closeForms();
+      setTimeout(() => { const r = recs.find(x => x.id === data.id) || data; if(calcBill(r, clientById(r.clientId)).eco !== null) openMsgCard(r); }, 400);
     }
   });
+
+  // Identifica o cliente pelo nome do titular da conta
+  function normName(s){ return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(t => t.length > 2 && !['dos','das','ltda','eireli','me'].includes(t)); }
+  function matchClient(titular){
+    const tt = new Set(normName(titular));
+    let best = null, bestScore = 0;
+    clients.forEach(c => {
+      const ct = normName(c.name);
+      const score = ct.filter(t => tt.has(t)).length;
+      const need = Math.min(2, ct.length);
+      if(score >= need && score > bestScore){ best = c; bestScore = score; }
+    });
+    return best;
+  }
+  function titleCase(s){ return (s||'').toLowerCase().replace(/(^|\s)(\S)/g, (m, a, b) => a + b.toUpperCase()).replace(/\s(De|Da|Do|Dos|Das|E)\s/g, m => m.toLowerCase()); }
+  function handleTitular(titular, cidade){
+    const box = document.getElementById('bClientMatch');
+    if(!titular){ box.innerHTML = ''; return; }
+    const sel = document.getElementById('bClient');
+    const current = clientById(sel.value);
+    const m = matchClient(titular);
+    if(billPresetClient && current){
+      box.innerHTML = (m && m.id === current.id) ? `<div class="hint" style="color:var(--green);margin-top:24px;">✓ Titular confere: ${escapeHtml(titleCase(titular))}</div>`
+        : `<div class="warn-note" style="margin-top:22px;">⚠ Titular da conta: ${escapeHtml(titleCase(titular))}. Confira se é o cliente certo.</div>`;
+      return;
+    }
+    if(m){
+      sel.value = m.id;
+      if(m.tariff && !document.getElementById('bTariff').value) document.getElementById('bTariff').value = m.tariff;
+      box.innerHTML = `<div class="hint" style="color:var(--green);margin-top:24px;">✓ Cliente encontrado pelo titular: ${escapeHtml(titleCase(titular))}</div>`;
+    } else {
+      sel.value = '';
+      box.innerHTML = `<label>Titular na conta: ${escapeHtml(titleCase(titular))}</label><button class="btn btn-ghost btn-sm" type="button" data-act="quick-client" data-name="${escapeHtml(titleCase(titular))}" data-city="${escapeHtml(cidade || '')}">+ Criar este cliente</button>`;
+    }
+  }
+  async function quickClient(name, city){
+    const data = {id: uid(), name, firstName: name.split(' ')[0], phone:'', city: city || '', activation: null, kwp: null, inverter:'', platform:'', plant:'',
+      tariff: num('bTariff'), billBefore: null, forecast: null, notes:'Criado a partir da conta de luz. Complete o cadastro.', fromQuote: null, createdAt: new Date().toISOString()};
+    if(await write(clientsRef, data, 'Cliente criado')){
+      if(!clientById(data.id)) clients.push(data);
+      fillClientSelects(data.id);
+      document.getElementById('bClientMatch').innerHTML = `<div class="hint" style="color:var(--green);margin-top:24px;">✓ Cliente criado. Depois complete WhatsApp, kWp e previsão em "Editar cliente".</div>`;
+      renderGenList(); updateBillPreview();
+    }
+  }
 
   // ---------- Mensagem ----------
   function messageFor(r){
@@ -1717,7 +1868,7 @@
   const aiInput = document.createElement('input');
   aiInput.type = 'file'; aiInput.accept = 'image/*,application/pdf'; aiInput.style.display = 'none';
   document.body.appendChild(aiInput);
-  let aiKind = null;
+  let aiKind = null, aiMonth = null;
 
   function aiStatus(kind, cls, text){
     const el = document.getElementById('aiStatus-' + kind);
@@ -1781,7 +1932,29 @@
     updateGenPreview();
     return {ok:true, text: notes.join(' ')};
   }
+  function applyGeracaoBill(d, fileDate, expected){
+    const per = periodByMonth(document.getElementById('bStart').value, document.getElementById('bEnd').value);
+    const needed = per ? per.months.map(x => x.key) : [expected];
+    if(d.periodo === 'dia') return {ok:false, text:'Esse print é de um dia só. Abra a visão "Mês" no app.'};
+    let key = expected, kwh = null;
+    if(d.periodo === 'mes' && has(d.geracao_kwh)){
+      if(d.referencia && d.referencia !== expected){
+        if(needed.includes(d.referencia)) key = d.referencia;
+        else return {ok:false, text:`Esse print é de ${keyLabel(d.referencia)}, mas preciso de ${keyLabel(expected)}.`};
+      }
+      kwh = d.geracao_kwh;
+    } else if(Array.isArray(d.meses) && d.meses.length){
+      const hit = d.meses.find(x => x.mes === expected);
+      if(!hit) return {ok:false, text:`Não achei ${keyLabel(expected)} nesse print.`};
+      kwh = hit.kwh;
+    } else return {ok:false, text: d.aviso || 'Não encontrei a geração no print. Use a visão "Mês" do app.'};
+    const days = defaultDaysFor(key, fileDate) || defaultDaysFor(key) || null;
+    draftGens[key] = {kwh, days: (days && days < daysInMonth(key)) ? days : null};
+    renderGenList(); updateBillPreview();
+    return {ok:true, key};
+  }
   function applyConta(d){
+    handleTitular(d.titular, d.cidade);
     const s = validISO(d.leitura_anterior) && setField('bStart', d.leitura_anterior);
     const e = validISO(d.leitura_atual) && setField('bEnd', d.leitura_atual);
     const a = setField('bPaid', d.valor_total);
@@ -1789,6 +1962,8 @@
     const c = setField('bInjected', d.energia_injetada_kwh);
     if(!a && !b && !c && !s) return {ok:false, text: d.aviso || 'Não consegui ler a conta. Tente uma foto mais nítida.'};
     if(has(d.tarifa_kwh) && !document.getElementById('bTariff').value) setField('bTariff', d.tarifa_kwh);
+    renderGenList();
+    setTimeout(() => document.getElementById('bStep2').scrollIntoView({behavior:'smooth', block:'start'}), 200);
     const missing = [!s && 'leitura anterior', !e && 'leitura atual', !a && 'valor pago', !b && 'energia comprada', !c && 'energia injetada'].filter(Boolean);
     const notes = [];
     if(missing.length) notes.push('Não encontrei: ' + missing.join(', ') + '. Preencha à mão.');
@@ -1801,7 +1976,9 @@
     const file = aiInput.files && aiInput.files[0];
     const kind = aiKind; aiInput.value = '';
     if(!file || !kind) return;
-    aiStatus(kind, 'busy', 'Lendo… (leva uns segundos)');
+    const month = aiMonth;
+    const rowStatus = (cls, text) => { const el = document.getElementById('gst-' + month); if(el){ el.className = 'gs ' + cls; el.textContent = text; } };
+    if(kind === 'geracao-bill') rowStatus('miss', 'Lendo o print… (leva uns segundos)'); else aiStatus(kind, 'busy', 'Lendo… (leva uns segundos)');
     try{
       const payload = await fileToPayload(file);
       const user = auth.currentUser;
@@ -1809,14 +1986,19 @@
       const token = await user.getIdToken();
       const resp = await fetch('/api/ler-imagem', {
         method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token},
-        body: JSON.stringify({kind, mediaType: payload.mediaType, data: payload.data})
+        body: JSON.stringify({kind: kind === 'geracao-bill' ? 'geracao' : kind, mediaType: payload.mediaType, data: payload.data})
       });
       let out = null; try{ out = await resp.json(); }catch(e){}
       if(!resp.ok || !out || !out.ok) throw new Error((out && out.error) || ('Erro ' + resp.status + ' ao ler a imagem.'));
       const fileDate = file.lastModified ? new Date(file.lastModified) : null;
+      if(kind === 'geracao-bill'){
+        const res = applyGeracaoBill(out.data, fileDate, month);
+        if(!res.ok) rowStatus('err', res.text);
+        return;
+      }
       const res = kind === 'geracao' ? applyGeracao(out.data, fileDate) : applyConta(out.data);
       aiStatus(kind, res.ok ? 'ok' : 'err', res.text);
-    }catch(err){ console.error(err); aiStatus(kind, 'err', err.message || 'Falha ao ler.'); }
+    }catch(err){ console.error(err); if(kind === 'geracao-bill') rowStatus('err', err.message || 'Falha ao ler.'); else aiStatus(kind, 'err', err.message || 'Falha ao ler.'); }
   });
 
   // ---------- Eventos ----------
@@ -1827,7 +2009,8 @@
     const t = e.target.closest('[data-act]');
     if(!t) return;
     const act = t.dataset.act, id = t.dataset.id;
-    if(act === 'ai-pick'){ aiKind = t.dataset.kind; aiInput.click(); return; }
+    if(act === 'ai-pick'){ aiKind = t.dataset.kind; aiMonth = t.dataset.month || null; aiInput.click(); return; }
+    if(act === 'quick-client'){ await quickClient(t.dataset.name, t.dataset.city); return; }
     if(act === 'expand'){ const body = document.querySelector(`#clientList .card-body[data-id="${id}"]`); if(body) body.classList.toggle('open'); return; }
     if(act === 'new-gen'){ openGenForm({clientId: t.dataset.client, month: t.dataset.month || null}); return; }
     if(act === 'new-bill'){ openBillForm({clientId: t.dataset.client}); return; }
