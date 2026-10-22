@@ -129,10 +129,64 @@
   .login-card .field{ margin-bottom: 14px; }
   .login-error{ color: var(--red); font-size: 13px; margin-bottom: 14px; font-family: var(--font-mono); }
   .header-actions{ display:flex; align-items:center; gap:10px; flex-shrink:0; }
+
+  /* ---------- Abas ---------- */
   .app-tabs{ display:flex; gap:6px; margin-bottom: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 4px; width: fit-content; max-width: 100%; }
-  .app-tab{ font-family: var(--font-body); font-weight: 600; font-size: 13px; padding: 9px 16px; border-radius: 9px; color: var(--text-muted); text-decoration: none; white-space: nowrap; }
+  .app-tab{ font-family: var(--font-body); font-weight: 600; font-size: 13px; padding: 9px 16px; border-radius: 9px; color: var(--text-muted); background: transparent; border: none; cursor: pointer; white-space: nowrap; }
   .app-tab:hover{ color: var(--text); background: var(--surface-2); }
   .app-tab.active{ background: var(--surface-2); color: var(--amber); }
+  /* ---------- Pós-venda (tudo escopado em #tabPos) ---------- */
+  #tabPos .stat.green .v{ color: var(--green); } #tabPos .stat.amber .v{ color: var(--amber); }
+  #tabPos .section-head{ gap: 10px; flex-wrap: wrap; }
+  #tabPos .btn{ text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+  #tabPos .btn-green{ background: rgba(53,211,153,.14); color: var(--green); border: 1px solid rgba(53,211,153,.35); }
+  #tabPos .form-card-title{ font-family: var(--font-display); font-weight: 600; font-size: 16px; margin-bottom: 16px; }
+  #tabPos textarea{ width: 100%; background: var(--surface-2); border: 1px solid var(--border); border-radius: 9px; padding: 10px 12px; color: var(--text); font-family: var(--font-body); font-size: 14px; resize: vertical; min-height: 60px; }
+  #tabPos textarea:focus{ outline: 2px solid var(--amber); outline-offset: 1px; }
+  #tabPos .hint{ font-size: 11px; color: var(--text-faint); margin-top: 4px; font-family: var(--font-mono); line-height: 1.5; }
+  #tabPos .warn-note{ font-size: 12px; margin-top: 6px; line-height: 1.5; }
+  #tabPos .sub-block input, #tabPos .sub-block select{ background: var(--surface); }
+  #tabPos .month-grid{ display:grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  @media (max-width: 640px){ #tabPos .month-grid{ grid-template-columns: repeat(3, 1fr); } }
+  #tabPos .month-grid label{ margin-bottom: 3px; font-size: 11px; }
+  #tabPos .month-grid input{ padding: 8px 8px; font-family: var(--font-mono); font-size: 13px; }
+  #tabPos .inline-tools{ display:flex; gap: 8px; align-items:flex-end; flex-wrap: wrap; margin-top: 10px; }
+  #tabPos .preview-item.green .pv{ color: var(--green); }
+  #tabPos .msg-box{ margin-top: 14px; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-size: 14px; line-height: 1.55; white-space: pre-wrap; }
+  #tabPos .form-actions{ flex-wrap: wrap; }
+  #tabPos .card{ background: var(--surface); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
+  #tabPos .card-head{ display:flex; justify-content:space-between; align-items:center; padding: 16px 18px; cursor: pointer; gap: 16px; }
+  #tabPos .card-left .name{ font-family: var(--font-display); font-weight:600; font-size:15px; display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
+  #tabPos .card-left .meta{ font-family: var(--font-mono); font-size:12px; color: var(--text-muted); margin-top:4px; }
+  #tabPos .card-right{ text-align:right; flex-shrink:0; }
+  #tabPos .card-right .value{ font-family: var(--font-mono); font-weight:700; font-size:16px; color: var(--green); }
+  #tabPos .card-right .sub{ font-family: var(--font-mono); font-size:11px; color: var(--text-muted); margin-top:2px; }
+  #tabPos .card-body{ display:none; padding: 0 18px 18px; border-top: 1px solid var(--border); }
+  #tabPos .card-body.open{ display:block; }
+  #tabPos .card-actions{ display:flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  #tabPos .badge{ display:inline-flex; align-items:center; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing:.04em; padding: 3px 9px; border-radius: 20px; border: 1px solid var(--border); color: var(--text-muted); background: var(--surface-2); }
+  #tabPos .badge.ok{ background: rgba(53,211,153,.12); color: var(--green); border-color: rgba(53,211,153,.3); }
+  #tabPos .badge.atencao{ background: rgba(255,176,32,.12); color: var(--amber); border-color: rgba(255,176,32,.3); }
+  #tabPos .badge.verificar{ background: rgba(255,99,99,.12); color: var(--red); border-color: rgba(255,99,99,.3); }
+  #tabPos .table-wrap{ overflow-x: auto; margin-top: 6px; }
+  #tabPos table{ width: 100%; border-collapse: collapse; font-size: 12px; font-family: var(--font-mono); min-width: 560px; }
+  #tabPos th{ text-align:left; color: var(--text-faint); font-weight: 500; padding: 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  #tabPos td{ padding: 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  #tabPos td.num, #tabPos th.num{ text-align: right; }
+  #tabPos .row-actions{ display:flex; gap: 6px; justify-content:flex-end; }
+  #tabPos .link-btn{ background:none; border:none; color: var(--amber); font-family: var(--font-mono); font-size: 12px; cursor:pointer; padding: 2px 4px; }
+  #tabPos .link-btn.danger{ color: var(--red); }
+  #tabPos .todo-item{ display:flex; justify-content:space-between; align-items:center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--amber); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+  #tabPos .todo-item.red{ border-left-color: var(--red); }
+  #tabPos .todo-item.blue{ border-left-color: #6aa7ff; }
+  #tabPos .todo-text{ font-size: 14px; }
+  #tabPos .todo-text .who{ font-weight: 600; }
+  #tabPos .todo-text .why{ font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  #tabPos .empty{ padding: 24px 0; }
+  #tabPos .pv-search{ max-width: 320px; margin-bottom: 14px; }
+  .toast{ position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 10px 16px; border-radius: 10px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 10; }
+  .toast.show{ opacity: 1; }
+  @media print{ .toast{ display:none; } }
   @media print{
     body *{ visibility: hidden; }
     #printArea, #printArea *{ visibility: visible; }
@@ -159,15 +213,11 @@
 </div>
 
 <div class="wrap" id="appRoot" style="display:none;">
-  <nav class="app-tabs">
-    <a class="app-tab active" href="/">Gerador de orçamento</a>
-    <a class="app-tab" href="/pos-venda.html">Painel de pós-venda</a>
-  </nav>
   <header>
     <div>
-      <p class="eyebrow">Energia Solar · Orçamentos</p>
-      <h1>Gerador de Orçamento</h1>
-      <p class="subtitle">Digite número de painéis, tipo de inversor e compare até 2 fornecedores — mão de obra, homologação, nota fiscal e preço de venda saem automáticos.</p>
+      <p class="eyebrow" id="pageEyebrow">Energia Solar · Orçamentos</p>
+      <h1 id="pageTitle">Gerador de Orçamento</h1>
+      <p class="subtitle" id="pageSubtitle">Digite número de painéis, tipo de inversor e compare até 2 fornecedores — mão de obra, homologação, nota fiscal e preço de venda saem automáticos.</p>
     </div>
     <div class="header-actions">
       <div id="syncStatus" class="sync-status">
@@ -177,6 +227,12 @@
     </div>
   </header>
 
+  <nav class="app-tabs" id="appTabs">
+    <button class="app-tab active" type="button" data-tab="orc">Gerador de orçamento</button>
+    <button class="app-tab" type="button" data-tab="pos">Painel de pós-venda</button>
+  </nav>
+
+  <div id="tabOrc">
   <div class="summary">
     <div class="stat"><div class="k">Orçamentos salvos</div><div class="v" id="statCount">0</div></div>
     <div class="stat"><div class="k">Valor vendido</div><div class="v" id="statTotal">R$ 0,00</div></div>
@@ -315,8 +371,144 @@
     <div id="quotesList"></div>
   </div>
 
+  </div><!-- /tabOrc -->
+
+  <div id="tabPos" style="display:none;">
+  <div class="summary">
+    <div class="stat"><div class="k">Clientes</div><div class="v" id="statClients">0</div></div>
+    <div class="stat amber"><div class="k">Pendências</div><div class="v" id="statTodo">0</div></div>
+    <div class="stat green"><div class="k">Economia gerada (total)</div><div class="v" id="statEco">R$ 0,00</div></div>
+    <div class="stat"><div class="k">Geração total registrada</div><div class="v" id="statGen">0 kWh</div></div>
+  </div>
+
+  <!-- PENDÊNCIAS -->
+  <div class="section">
+    <div class="section-head"><div class="section-title">O que fazer agora</div><div id="pvSyncStatus" class="sync-status syncing"><span class="sync-dot"></span><span id="pvSyncStatusText">Conectando…</span></div></div>
+    <div id="todoList"></div>
+  </div>
+
+  <!-- FORM CLIENTE -->
+  <div class="form-card" id="clientForm">
+    <div class="form-card-title" id="clientFormTitle">Novo cliente</div>
+
+    <div class="sub-block" id="importBlock">
+      <div class="sub-block-title">Puxar de um orçamento vendido (opcional)</div>
+      <select id="cImport"><option value="">— Nenhum orçamento vendido encontrado —</option></select>
+      <div class="hint">Só lê o orçamento para preencher nome, kWp e inversor. Não altera nada no gerador.</div>
+    </div>
+
+    <div class="form-row">
+      <div><label>Nome do cliente</label><input type="text" id="cName" placeholder="Ex: João Silva"></div>
+      <div><label>Primeiro nome (para a mensagem)</label><input type="text" id="cFirst" placeholder="Ex: João"></div>
+    </div>
+    <div class="form-row three">
+      <div><label>WhatsApp</label><input type="tel" id="cPhone" placeholder="(11) 99999-0000"></div>
+      <div><label>Cidade</label><input type="text" id="cCity" placeholder="Itu"></div>
+      <div><label>Data de ativação do sistema</label><input type="date" id="cActivation"></div>
+    </div>
+    <div class="form-row three">
+      <div><label>Potência (kWp)</label><input type="number" id="cKwp" step="0.01" placeholder="6.60"></div>
+      <div><label>Inversor (marca / modelo)</label><input type="text" id="cInverter" placeholder="Ex: Deye 6 kW"></div>
+      <div><label>App de monitoramento</label>
+        <select id="cPlatform">
+          <option value="">— Escolha —</option>
+          <option>Solarman</option><option>Deye Cloud</option><option>Growatt (ShinePhone)</option>
+          <option>Huawei FusionSolar</option><option>Sungrow iSolarCloud</option><option>GoodWe SEMS</option>
+          <option>Hoymiles S-Miles</option><option>SolarEdge</option><option>Outro</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div><label>Nome da usina no app</label><input type="text" id="cPlant" placeholder="Como aparece no app"><div class="hint">Sem senha aqui. A busca automática vai usar uma chave de acesso do integrador, não a senha.</div></div>
+      <div></div>
+    </div>
+    <div class="form-row">
+      <div><label>Tarifa cheia com impostos (R$/kWh)</label><input type="number" id="cTariff" step="0.0001" placeholder="0.98"><div class="hint">Na conta: valor total ÷ kWh, numa conta de antes do solar. Dá para ajustar mês a mês.</div></div>
+      <div><label>Conta média antes do solar (R$)</label><input type="number" id="cBillBefore" step="0.01" placeholder="780"><div class="hint">Só para referência na mensagem. Não entra no cálculo.</div></div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-block-title">Geração prevista mês a mês (kWh)</div>
+      <div class="month-grid" id="cForecast"></div>
+      <div class="inline-tools">
+        <button class="btn btn-ghost btn-sm" id="cEstimateBtn" type="button">Estimar pelo kWp</button>
+        <span class="hint" style="margin:0;">Estimativa para a região de Itu/Sorocaba. O ideal é copiar os 12 valores da simulação do projeto.</span>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div style="grid-column: 1 / -1;"><label>Observações</label><textarea id="cNotes" placeholder="Ex: zero grid, cliente prefere contato à tarde…"></textarea></div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-ghost" id="cCancel" type="button">Cancelar</button>
+      <button class="btn btn-primary" id="cSave" type="button">Salvar cliente</button>
+    </div>
+  </div>
+
+  <!-- FORM LEITURA -->
+  <div class="form-card" id="readForm">
+    <div class="form-card-title" id="readFormTitle">Lançar mês</div>
+    <div class="form-row three">
+      <div><label>Cliente</label><select id="rClient"></select></div>
+      <div><label>Mês</label><select id="rMonth"></select></div>
+      <div><label>Ano</label><select id="rYear"></select></div>
+    </div>
+    <div class="form-row">
+      <div><label>Geração do mês no app (kWh)</label><input type="number" id="rGen" step="0.01" placeholder="Ex: 835"></div>
+      <div><label>Tarifa do mês (R$/kWh)</label><input type="number" id="rTariff" step="0.0001"><div class="hint">Vem do cadastro. Mude se a tarifa mudou.</div></div>
+    </div>
+
+    <div class="sub-block">
+      <div class="sub-block-title">Dados da conta de luz (é isso que dá a economia real)</div>
+      <div class="form-row three" style="margin-bottom:0;">
+        <div><label>Valor pago na conta (R$)</label><input type="number" id="rPaid" step="0.01" placeholder="145.00"></div>
+        <div><label>Energia comprada da rede (kWh)</label><input type="number" id="rGrid" step="0.01" placeholder="Consumo / energia ativa"></div>
+        <div><label>Energia injetada (kWh)</label><input type="number" id="rInjected" step="0.01" placeholder="Injetada / geração"></div>
+      </div>
+      <div class="hint">Sem a conta, o sistema mostra uma economia estimada (geração × tarifa), marcada como "estimada".</div>
+    </div>
+
+    <div class="form-row">
+      <div style="grid-column: 1 / -1;"><label>Observações</label><textarea id="rNotes" placeholder="Ex: cliente comentou que está usando mais o ar…"></textarea></div>
+    </div>
+
+    <div class="preview">
+      <div class="preview-title">Resultado do mês</div>
+      <div class="preview-grid">
+        <div class="preview-item"><div class="pk">Previsto no mês</div><div class="pv" id="pForecast">—</div></div>
+        <div class="preview-item"><div class="pk">% do previsto</div><div class="pv" id="pPct">—</div></div>
+        <div class="preview-item"><div class="pk">Status</div><div class="pv" id="pStatus">—</div></div>
+        <div class="preview-item green"><div class="pk" id="pEcoLabel">Economia</div><div class="pv" id="pEco">—</div></div>
+      </div>
+      <div class="breakdown" id="pBreakdown"></div>
+      <div id="pWarn"></div>
+      <div class="msg-box" id="pMsg" style="display:none;"></div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-ghost" id="rCancel" type="button">Cancelar</button>
+      <button class="btn btn-primary" id="rSave" type="button">Salvar mês</button>
+    </div>
+  </div>
+
+  <!-- CLIENTES -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">Clientes</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-ghost" id="newReadBtn">+ Lançar mês</button>
+        <button class="btn btn-primary" id="newClientBtn">+ Novo cliente</button>
+      </div>
+    </div>
+    <div class="pv-search"><input type="text" id="search" placeholder="Buscar cliente…"></div>
+    <div id="clientList"></div>
+  </div>
+  </div><!-- /tabPos -->
+
 </div>
 
+<div class="toast" id="toast"></div>
 <div id="printArea"></div>
 
 <script>
@@ -886,6 +1078,587 @@
     `;
     window.print();
   }
+
+})();
+</script>
+
+<script>
+(function(){
+  // Troca de abas na mesma página (o link não muda)
+  const META = {
+    orc: {eyebrow:'Energia Solar · Orçamentos', title:'Gerador de Orçamento', sub:'Digite número de painéis, tipo de inversor e compare até 2 fornecedores — mão de obra, homologação, nota fiscal e preço de venda saem automáticos.'},
+    pos: {eyebrow:'Energia Solar · Pós-venda', title:'Pós-venda', sub:'Geração do mês + conta de luz = economia real em reais e mensagem pronta para o cliente.'}
+  };
+  function show(tab){
+    document.getElementById('tabOrc').style.display = tab === 'orc' ? 'block' : 'none';
+    document.getElementById('tabPos').style.display = tab === 'pos' ? 'block' : 'none';
+    document.querySelectorAll('#appTabs .app-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    document.getElementById('pageEyebrow').textContent = META[tab].eyebrow;
+    document.getElementById('pageTitle').textContent = META[tab].title;
+    document.getElementById('pageSubtitle').textContent = META[tab].sub;
+    try{ sessionStorage.setItem('abaAtiva', tab); }catch(e){}
+  }
+  document.getElementById('appTabs').addEventListener('click', e => {
+    const b = e.target.closest('.app-tab'); if(b) show(b.dataset.tab);
+  });
+  let saved = 'orc';
+  try{ saved = sessionStorage.getItem('abaAtiva') || 'orc'; }catch(e){}
+  show(META[saved] ? saved : 'orc');
+})();
+</script>
+<script>
+(function(){
+  // Pós-venda: usa o mesmo Firebase já iniciado pelo gerador; dados em coleções próprias
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const MONTHS_FULL = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  // Estimativa de irradiação diária no plano inclinado (kWh/m²/dia) para a região de Itu/Sorocaba e dias do mês.
+  // Aproximação para preencher a previsão quando não há a simulação do projeto.
+  const HSP = [5.2,5.4,5.0,4.9,4.4,4.2,4.4,5.0,4.9,5.1,5.3,5.3];
+  const DAYS = [31,28,31,30,31,30,31,31,30,31,30,31];
+  const PR = 0.78;
+
+  let clients = [], reads = [], soldQuotes = [];
+  let clientsRef = null, readsRef = null, quotesRef = null;
+  let unsubs = [];
+  let editingClientId = null, editingReadId = null;
+  let searchQuery = '';
+
+  // ---------- Utilidades ----------
+  function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4); }
+  function fmtBRL(v){ return (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'}); }
+  function fmtNum(v, d){ return (v||0).toLocaleString('pt-BR', {maximumFractionDigits: d===undefined?0:d, minimumFractionDigits: d===undefined?0:d}); }
+  function fmtPct(v){ return Math.round((v||0)*100) + '%'; }
+  function escapeHtml(str){ const div = document.createElement('div'); div.textContent = (str===undefined||str===null)?'':String(str); return div.innerHTML; }
+  function num(id){ const v = document.getElementById(id).value; if(v===''||v===null) return null; const n = parseFloat(String(v).replace(',','.')); return isNaN(n)?null:n; }
+  function txt(id){ return document.getElementById(id).value.trim(); }
+  function monthKey(y,m){ return y + '-' + String(m+1).padStart(2,'0'); }
+  function parseKey(k){ const [y,m] = k.split('-').map(Number); return {y, m: m-1}; }
+  function keyLabel(k){ const {y,m} = parseKey(k); return MONTHS[m] + '/' + y; }
+  function prevMonthKey(){ const d = new Date(); d.setDate(1); d.setMonth(d.getMonth()-1); return monthKey(d.getFullYear(), d.getMonth()); }
+  function toast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), 2200); }
+  function waLink(phone, text){
+    let d = (phone||'').replace(/\D/g,'');
+    if(!d) return null;
+    if(!(d.startsWith('55') && d.length >= 12)) d = '55' + d;
+    return 'https://wa.me/' + d + '?text=' + encodeURIComponent(text);
+  }
+
+  // ---------- Cálculo ----------
+  function clientById(id){ return clients.find(c => c.id === id); }
+  function readsOf(clientId){ return reads.filter(r => r.clientId === clientId).sort((a,b) => a.month.localeCompare(b.month)); }
+  function hasBill(r){ return r.paid !== null && r.paid !== undefined && r.grid !== null && r.grid !== undefined && r.injected !== null && r.injected !== undefined; }
+
+  function calcRead(r, c){
+    const out = {forecast:null, pct:null, status:null, eco:null, ecoType:null, autoconsumo:null, consumoTotal:null, semSolar:null, warnings:[]};
+    if(!c || !r || !r.month) return out;
+    const {m} = parseKey(r.month);
+    const f = (c.forecast && c.forecast[m]) ? c.forecast[m] : null;
+    out.forecast = f;
+    if(f && r.gen !== null && r.gen !== undefined){
+      out.pct = r.gen / f;
+      out.status = out.pct >= 0.9 ? 'ok' : (out.pct >= 0.75 ? 'atencao' : 'verificar');
+    }
+    const tariff = (r.tariff !== null && r.tariff !== undefined) ? r.tariff : c.tariff;
+    if(hasBill(r) && tariff){
+      const gen = r.gen || 0;
+      out.autoconsumo = Math.max(gen - r.injected, 0);
+      out.consumoTotal = r.grid + out.autoconsumo;
+      out.semSolar = out.consumoTotal * tariff;
+      out.eco = out.semSolar - r.paid;
+      out.ecoType = 'real';
+      if(gen && r.injected > gen * 1.05) out.warnings.push('Injetado maior que a geração: o período da conta e o mês do app provavelmente não batem, ou algum número foi digitado errado.');
+      if(out.eco < 0) out.warnings.push('Economia negativa: confira os números da conta.');
+    } else if(r.gen && tariff){
+      out.eco = r.gen * tariff;
+      out.ecoType = 'estimada';
+    }
+    if(!f) out.warnings.push('Sem previsão cadastrada para este mês. Edite o cliente e preencha a geração prevista.');
+    if(!tariff) out.warnings.push('Sem tarifa: preencha a tarifa para calcular a economia.');
+    return out;
+  }
+
+  function ecoAccum(clientId, uptoMonth){
+    const c = clientById(clientId);
+    return readsOf(clientId).filter(r => !uptoMonth || r.month <= uptoMonth).reduce((s,r) => { const k = calcRead(r,c); return s + (k.eco||0); }, 0);
+  }
+
+  function isFirstBill(r){
+    const firsts = readsOf(r.clientId).filter(hasBill);
+    return firsts.length > 0 && firsts[0].id === r.id;
+  }
+
+  function buildMessage(r, c){
+    if(!c || !r || r.gen === null || r.gen === undefined) return '';
+    const k = calcRead(r, c);
+    const nome = c.firstName || (c.name||'').split(' ')[0] || '';
+    const {m} = parseKey(r.month);
+    const mes = MONTHS_FULL[m];
+    if(k.status === 'verificar'){
+      return `Olá, ${nome}! Fiz o acompanhamento de ${mes} do seu sistema solar e a geração ficou abaixo do esperado para o período (${fmtNum(r.gen)} kWh, ${fmtPct(k.pct)} do previsto). Já estou verificando o sistema e te retorno em breve com o diagnóstico.`;
+    }
+    if(k.ecoType === 'real' && isFirstBill(r)){
+      let s = `Olá, ${nome}! Chegou sua primeira conta com o sistema solar funcionando ☀️\n\nEm ${mes}, seu sistema gerou ${fmtNum(r.gen)} kWh. Sem o solar, sua conta teria ficado em torno de ${fmtBRL(k.semSolar)}. Você pagou ${fmtBRL(r.paid)}, uma economia de ${fmtBRL(k.eco)} no mês!`;
+      s += `\n\nFico muito feliz com o resultado. Se conhecer alguém que também queira reduzir a conta de luz, posso fazer uma análise sem compromisso. E se puder deixar sua avaliação no Google, ajuda muito a gente!`;
+      return s;
+    }
+    const acum = ecoAccum(r.clientId, r.month);
+    const nReads = readsOf(r.clientId).filter(x => x.month <= r.month).length;
+    let s = `Olá, ${nome}! Fechamento de ${mes} do seu sistema solar: ${fmtNum(r.gen)} kWh gerados`;
+    if(k.pct !== null) s += ` (${fmtPct(k.pct)} do previsto para o mês)`;
+    if(k.eco !== null) s += ` e economia ${k.ecoType==='estimada'?'estimada ':''}de ${fmtBRL(k.eco)}.`;
+    else s += '.';
+    if(nReads > 1 && acum > 0) s += ` Desde a instalação, já são ${fmtBRL(acum)} economizados.`;
+    s += k.status === 'atencao' ? ' Mês com um pouco mais de nuvens, mas dentro do normal.' : ' Seu sistema segue funcionando muito bem!';
+    s += ' Qualquer dúvida, é só chamar.';
+    return s;
+  }
+
+  // ---------- Sync ----------
+  function setSyncStatus(state, text){
+    const el = document.getElementById('pvSyncStatus');
+    el.classList.remove('syncing','error');
+    if(state) el.classList.add(state);
+    document.getElementById('pvSyncStatusText').textContent = text;
+  }
+  function onSyncError(err){
+    console.error(err);
+    const denied = err && (err.code === 'permission-denied');
+    setSyncStatus('error', denied ? 'Sem permissão no banco (ver regras)' : 'Falha ao sincronizar');
+  }
+  function startSync(userId){
+    setSyncStatus('syncing', 'Conectando…');
+    const base = db.collection('users').doc(userId);
+    clientsRef = base.collection('posvenda_clientes');
+    readsRef = base.collection('posvenda_leituras');
+    quotesRef = base.collection('quotes');
+    let got = 0;
+    const done = () => { got++; if(got >= 2) setSyncStatus(null, 'Sincronizado'); };
+    unsubs.push(clientsRef.onSnapshot(s => { clients = s.docs.map(d => d.data()); render(); done(); }, onSyncError));
+    unsubs.push(readsRef.onSnapshot(s => { reads = s.docs.map(d => d.data()); render(); done(); }, onSyncError));
+    // Somente leitura: orçamentos vendidos para importar dados
+    quotesRef.get().then(s => {
+      soldQuotes = s.docs.map(d => d.data()).filter(q => q.status === 'vendido');
+      renderImportOptions();
+    }).catch(err => console.warn('Não foi possível ler orçamentos', err));
+  }
+  function stopSync(){ unsubs.forEach(u => u()); unsubs = []; clients = []; reads = []; soldQuotes = []; }
+
+  async function write(ref, data, okMsg){
+    setSyncStatus('syncing', 'Salvando…');
+    try{ await ref.doc(data.id).set(data); setSyncStatus(null, 'Sincronizado'); if(okMsg) toast(okMsg); return true; }
+    catch(e){ onSyncError(e); toast('Não foi possível salvar.'); return false; }
+  }
+  async function remove(ref, id){
+    setSyncStatus('syncing', 'Excluindo…');
+    try{ await ref.doc(id).delete(); setSyncStatus(null, 'Sincronizado'); }
+    catch(e){ onSyncError(e); }
+  }
+
+  auth.onAuthStateChanged(user => { if(user) startSync(user.uid); else stopSync(); });
+
+  // ---------- Render ----------
+  function buildTodos(){
+    const todos = [];
+    const pm = prevMonthKey();
+    clients.forEach(c => {
+      const rs = readsOf(c.id);
+      const activationKey = c.activation ? c.activation.slice(0,7) : null;
+      if(rs.length === 0){
+        todos.push({level:'amber', client:c, why:'Nenhum mês lançado ainda', action:'read', month: (activationKey && activationKey <= pm) ? pm : null});
+      } else if(!rs.some(r => r.month === pm) && (!activationKey || activationKey <= pm)){
+        todos.push({level:'amber', client:c, why:'Falta lançar ' + keyLabel(pm), action:'read', month: pm});
+      }
+      rs.forEach(r => {
+        const k = calcRead(r, c);
+        if(k.status === 'verificar' && !r.checked) todos.push({level:'red', client:c, read:r, why:`${keyLabel(r.month)}: geração em ${fmtPct(k.pct)} do previsto. Abra o app e veja os alertas do inversor antes de falar com o cliente.`, action:'check'});
+        if(!r.sent && r.gen !== null && r.gen !== undefined) todos.push({level:'blue', client:c, read:r, why:`Mensagem de ${keyLabel(r.month)} não enviada`, action:'msg'});
+      });
+    });
+    return todos;
+  }
+
+  function renderStats(todos){
+    document.getElementById('statClients').textContent = clients.length;
+    document.getElementById('statTodo').textContent = todos.length;
+    let eco = 0, gen = 0;
+    reads.forEach(r => { const c = clientById(r.clientId); if(!c) return; const k = calcRead(r,c); eco += k.eco||0; gen += r.gen||0; });
+    document.getElementById('statEco').textContent = fmtBRL(eco);
+    document.getElementById('statGen').textContent = fmtNum(gen) + ' kWh';
+  }
+
+  function renderTodos(todos){
+    const el = document.getElementById('todoList');
+    if(clients.length === 0){ el.innerHTML = '<div class="empty">Cadastre o primeiro cliente para começar.</div>'; return; }
+    if(todos.length === 0){ el.innerHTML = '<div class="empty">Tudo em dia ✓</div>'; return; }
+    const order = {red:0, amber:1, blue:2};
+    el.innerHTML = todos.sort((a,b) => order[a.level]-order[b.level]).map(t => {
+      let btn = '';
+      if(t.action === 'read') btn = `<button class="btn btn-primary btn-sm" data-act="new-read" data-client="${t.client.id}" data-month="${t.month||''}">Lançar</button>`;
+      if(t.action === 'check') btn = `<button class="btn btn-ghost btn-sm" data-act="mark-checked" data-id="${t.read.id}">Já verifiquei</button>`;
+      if(t.action === 'msg') btn = `<button class="btn btn-green btn-sm" data-act="show-msg" data-id="${t.read.id}">Ver mensagem</button>`;
+      return `<div class="todo-item ${t.level==='red'?'red':(t.level==='blue'?'blue':'')}">
+        <div class="todo-text"><div class="who">${escapeHtml(t.client.name)}</div><div class="why">${escapeHtml(t.why)}</div></div>${btn}</div>`;
+    }).join('');
+  }
+
+  function renderClients(){
+    const el = document.getElementById('clientList');
+    const list = clients.filter(c => !searchQuery || (c.name||'').toLowerCase().includes(searchQuery)).sort((a,b) => (a.name||'').localeCompare(b.name||''));
+    if(list.length === 0){ el.innerHTML = `<div class="empty">${searchQuery ? 'Nenhum cliente encontrado.' : 'Nenhum cliente cadastrado.'}</div>`; return; }
+    const openIds = new Set([...document.querySelectorAll('.card-body.open')].map(b => b.dataset.id));
+    el.innerHTML = list.map(c => {
+      const rs = readsOf(c.id);
+      const last = rs[rs.length-1];
+      const lk = last ? calcRead(last, c) : null;
+      const acum = ecoAccum(c.id);
+      const badge = lk && lk.status ? `<span class="badge ${lk.status}">${lk.status==='ok'?'OK':(lk.status==='atencao'?'Atenção':'Verificar')}</span>` : '';
+      const rows = rs.slice().reverse().map(r => {
+        const k = calcRead(r, c);
+        return `<tr>
+          <td>${keyLabel(r.month)}</td>
+          <td class="num">${r.gen!==null&&r.gen!==undefined ? fmtNum(r.gen) : '—'}</td>
+          <td class="num">${k.forecast ? fmtNum(k.forecast) : '—'}</td>
+          <td class="num">${k.pct!==null ? fmtPct(k.pct) : '—'}</td>
+          <td class="num">${k.eco!==null ? fmtBRL(k.eco) : '—'}</td>
+          <td>${k.ecoType==='real' ? 'real' : (k.ecoType ? 'estimada' : '—')}</td>
+          <td>${r.sent ? '✓' : '—'}</td>
+          <td><div class="row-actions">
+            <button class="link-btn" data-act="show-msg" data-id="${r.id}">Mensagem</button>
+            <button class="link-btn" data-act="edit-read" data-id="${r.id}">Editar</button>
+            <button class="link-btn danger" data-act="del-read" data-id="${r.id}">Excluir</button>
+          </div></td></tr>`;
+      }).join('');
+      return `<div class="card">
+        <div class="card-head" data-act="expand" data-id="${c.id}">
+          <div class="card-left">
+            <div class="name">${escapeHtml(c.name)} ${badge}</div>
+            <div class="meta">${c.kwp ? fmtNum(c.kwp,2)+' kWp' : '— kWp'} · ${escapeHtml(c.platform||'app não definido')}${c.city ? ' · '+escapeHtml(c.city) : ''} · ${rs.length} ${rs.length===1?'mês':'meses'}</div>
+          </div>
+          <div class="card-right"><div class="value">${fmtBRL(acum)}</div><div class="sub">economia acumulada</div></div>
+        </div>
+        <div class="card-body ${openIds.has(c.id)?'open':''}" data-id="${c.id}">
+          <div class="detail-grid">
+            <div><span class="dk">WhatsApp:</span> <span class="dv">${escapeHtml(c.phone||'—')}</span></div>
+            <div><span class="dk">Inversor:</span> <span class="dv">${escapeHtml(c.inverter||'—')}</span></div>
+            <div><span class="dk">Usina no app:</span> <span class="dv">${escapeHtml(c.plant||'—')}</span></div>
+            <div><span class="dk">Ativação:</span> <span class="dv">${c.activation ? c.activation.split('-').reverse().join('/') : '—'}</span></div>
+            <div><span class="dk">Tarifa:</span> <span class="dv">${c.tariff ? 'R$ '+fmtNum(c.tariff,4)+'/kWh' : '—'}</span></div>
+            <div><span class="dk">Conta média antes:</span> <span class="dv">${c.billBefore ? fmtBRL(c.billBefore) : '—'}</span></div>
+            <div><span class="dk">Previsão anual:</span> <span class="dv">${c.forecast ? fmtNum(c.forecast.reduce((s,x)=>s+(x||0),0))+' kWh' : '—'}</span></div>
+            ${c.notes ? `<div><span class="dk">Obs.:</span> <span class="dv">${escapeHtml(c.notes)}</span></div>` : ''}
+          </div>
+          ${rs.length ? `<div class="table-wrap"><table>
+            <thead><tr><th>Mês</th><th class="num">Gerado</th><th class="num">Previsto</th><th class="num">%</th><th class="num">Economia</th><th>Tipo</th><th>Enviada</th><th></th></tr></thead>
+            <tbody>${rows}</tbody></table></div>` : '<div class="empty" style="padding:12px 0;">Nenhum mês lançado.</div>'}
+          <div class="card-actions">
+            <button class="btn btn-primary btn-sm" data-act="new-read" data-client="${c.id}">+ Lançar mês</button>
+            <button class="btn btn-ghost btn-sm" data-act="edit-client" data-id="${c.id}">Editar cliente</button>
+            <button class="btn btn-danger btn-sm" data-act="del-client" data-id="${c.id}">Excluir cliente</button>
+          </div>
+        </div></div>`;
+    }).join('');
+  }
+
+  function renderImportOptions(){
+    const sel = document.getElementById('cImport');
+    const used = new Set(clients.map(c => c.fromQuote).filter(Boolean));
+    const avail = soldQuotes.filter(q => !used.has(q.id) || q.id === (editingClientId && (clientById(editingClientId)||{}).fromQuote));
+    sel.innerHTML = avail.length
+      ? '<option value="">— Escolha um orçamento vendido —</option>' + avail.map(q => `<option value="${q.id}">${escapeHtml(q.client)} · ${fmtNum((q.panelsQty||0)*(q.panelWatt||0)/1000,2)} kWp${q.date?' · '+q.date:''}</option>`).join('')
+      : '<option value="">— Nenhum orçamento vendido disponível —</option>';
+  }
+
+  function renderClientSelect(selectedId){
+    const sel = document.getElementById('rClient');
+    sel.innerHTML = clients.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'')).map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+    if(selectedId) sel.value = selectedId;
+  }
+
+  function render(){
+    const todos = buildTodos();
+    renderStats(todos);
+    renderTodos(todos);
+    renderClients();
+    renderImportOptions();
+  }
+
+  // ---------- Formulário de cliente ----------
+  const forecastEl = document.getElementById('cForecast');
+  forecastEl.innerHTML = MONTHS.map((m,i) => `<div><label>${m}</label><input type="number" step="1" data-fm="${i}" placeholder="kWh"></div>`).join('');
+  function forecastInputs(){ return [...forecastEl.querySelectorAll('input')]; }
+
+  function openClientForm(c){
+    editingClientId = c ? c.id : null;
+    document.getElementById('clientFormTitle').textContent = c ? 'Editar cliente' : 'Novo cliente';
+    document.getElementById('cSave').textContent = c ? 'Atualizar cliente' : 'Salvar cliente';
+    document.getElementById('importBlock').style.display = c ? 'none' : 'block';
+    const v = (id, val) => document.getElementById(id).value = (val===undefined||val===null) ? '' : val;
+    v('cName', c&&c.name); v('cFirst', c&&c.firstName); v('cPhone', c&&c.phone); v('cCity', c&&c.city);
+    v('cActivation', c&&c.activation); v('cKwp', c&&c.kwp); v('cInverter', c&&c.inverter); v('cPlatform', (c&&c.platform)||'');
+    v('cPlant', c&&c.plant); v('cTariff', c&&c.tariff); v('cBillBefore', c&&c.billBefore); v('cNotes', c&&c.notes);
+    forecastInputs().forEach((inp,i) => inp.value = (c && c.forecast && c.forecast[i]) ? c.forecast[i] : '');
+    document.getElementById('cImport').dataset.quote = (c && c.fromQuote) || '';
+    renderImportOptions();
+    document.getElementById('readForm').classList.remove('open');
+    const card = document.getElementById('clientForm');
+    card.classList.add('open');
+    card.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+  function closeClientForm(){ editingClientId = null; document.getElementById('clientForm').classList.remove('open'); }
+
+  document.getElementById('cImport').addEventListener('change', e => {
+    const q = soldQuotes.find(x => x.id === e.target.value);
+    e.target.dataset.quote = q ? q.id : '';
+    if(!q) return;
+    document.getElementById('cName').value = q.client || '';
+    document.getElementById('cFirst').value = (q.client||'').split(' ')[0];
+    const kwp = (q.panelsQty||0)*(q.panelWatt||0)/1000;
+    document.getElementById('cKwp').value = kwp ? kwp.toFixed(2) : '';
+    document.getElementById('cInverter').value = [q.invType==='micro'?'Micro':'String', q.invModel].filter(Boolean).join(' · ');
+  });
+  document.getElementById('cName').addEventListener('input', () => {
+    const f = document.getElementById('cFirst');
+    if(!f.dataset.touched) f.value = txt('cName').split(' ')[0];
+  });
+  document.getElementById('cFirst').addEventListener('input', e => e.target.dataset.touched = '1');
+
+  document.getElementById('cEstimateBtn').addEventListener('click', () => {
+    const kwp = num('cKwp');
+    if(!kwp){ toast('Preencha a potência (kWp) primeiro.'); return; }
+    const hasValues = forecastInputs().some(i => i.value !== '');
+    if(hasValues && !confirmOnce('cEstimateBtn', 'Substituir valores? Clique de novo')) return;
+    forecastInputs().forEach((inp,i) => inp.value = Math.round(kwp * HSP[i] * DAYS[i] * PR));
+  });
+
+  function confirmOnce(btnId, label){
+    const b = document.getElementById(btnId);
+    if(b.dataset.confirming === '1'){ b.dataset.confirming = '0'; b.textContent = b.dataset.orig; return true; }
+    b.dataset.orig = b.textContent; b.dataset.confirming = '1'; b.textContent = label;
+    setTimeout(() => { if(b.dataset.confirming === '1'){ b.dataset.confirming = '0'; b.textContent = b.dataset.orig; } }, 3000);
+    return false;
+  }
+
+  document.getElementById('cCancel').addEventListener('click', closeClientForm);
+  document.getElementById('cSave').addEventListener('click', async () => {
+    const name = txt('cName');
+    if(!name){ toast('Preencha o nome do cliente.'); return; }
+    const forecast = forecastInputs().map(i => { const n = parseFloat(i.value); return isNaN(n) ? null : n; });
+    const prev = editingClientId ? clientById(editingClientId) : null;
+    const data = {
+      id: editingClientId || uid(),
+      name, firstName: txt('cFirst') || name.split(' ')[0],
+      phone: txt('cPhone'), city: txt('cCity'), activation: document.getElementById('cActivation').value || null,
+      kwp: num('cKwp'), inverter: txt('cInverter'), platform: document.getElementById('cPlatform').value,
+      plant: txt('cPlant'), tariff: num('cTariff'), billBefore: num('cBillBefore'),
+      forecast: forecast.some(x => x !== null) ? forecast : null,
+      notes: txt('cNotes'),
+      fromQuote: document.getElementById('cImport').dataset.quote || (prev && prev.fromQuote) || null,
+      createdAt: (prev && prev.createdAt) || new Date().toISOString()
+    };
+    const ok = await write(clientsRef, data, editingClientId ? 'Cliente atualizado' : 'Cliente salvo');
+    if(ok){ document.getElementById('cFirst').dataset.touched = ''; closeClientForm(); }
+  });
+
+  // ---------- Formulário de leitura ----------
+  (function initMonthYear(){
+    document.getElementById('rMonth').innerHTML = MONTHS_FULL.map((m,i) => `<option value="${i}">${m.charAt(0).toUpperCase()+m.slice(1)}</option>`).join('');
+    const y = new Date().getFullYear();
+    let opts = '';
+    for(let yy = y+1; yy >= y-4; yy--) opts += `<option value="${yy}">${yy}</option>`;
+    document.getElementById('rYear').innerHTML = opts;
+  })();
+
+  function readFormData(){
+    return {
+      clientId: document.getElementById('rClient').value,
+      month: monthKey(parseInt(document.getElementById('rYear').value), parseInt(document.getElementById('rMonth').value)),
+      gen: num('rGen'), tariff: num('rTariff'),
+      paid: num('rPaid'), grid: num('rGrid'), injected: num('rInjected'),
+      notes: txt('rNotes')
+    };
+  }
+
+  function openReadForm(opts){
+    opts = opts || {};
+    if(clients.length === 0){ toast('Cadastre um cliente primeiro.'); return; }
+    const r = opts.read || null;
+    editingReadId = r ? r.id : null;
+    document.getElementById('readFormTitle').textContent = r ? 'Editar mês' : 'Lançar mês';
+    document.getElementById('rSave').textContent = r ? 'Atualizar mês' : 'Salvar mês';
+    renderClientSelect(r ? r.clientId : opts.clientId);
+    const key = r ? r.month : (opts.month || prevMonthKey());
+    const {y,m} = parseKey(key);
+    document.getElementById('rMonth').value = m;
+    if(![...document.getElementById('rYear').options].some(o => o.value == y)){
+      document.getElementById('rYear').insertAdjacentHTML('beforeend', `<option value="${y}">${y}</option>`);
+    }
+    document.getElementById('rYear').value = y;
+    const v = (id, val) => document.getElementById(id).value = (val===undefined||val===null) ? '' : val;
+    v('rGen', r&&r.gen); v('rPaid', r&&r.paid); v('rGrid', r&&r.grid); v('rInjected', r&&r.injected); v('rNotes', r&&r.notes);
+    const c = clientById(document.getElementById('rClient').value);
+    v('rTariff', r && r.tariff !== null && r.tariff !== undefined ? r.tariff : (c && c.tariff));
+    document.getElementById('clientForm').classList.remove('open');
+    const card = document.getElementById('readForm');
+    card.classList.add('open');
+    updateReadPreview();
+    card.scrollIntoView({behavior:'smooth', block:'start'});
+    if(!r) setTimeout(() => document.getElementById('rGen').focus({preventScroll:true}), 300);
+  }
+  function closeReadForm(){ editingReadId = null; document.getElementById('readForm').classList.remove('open'); }
+
+  document.getElementById('rClient').addEventListener('change', () => {
+    const c = clientById(document.getElementById('rClient').value);
+    document.getElementById('rTariff').value = (c && c.tariff) ? c.tariff : '';
+    updateReadPreview();
+  });
+  ['rMonth','rYear'].forEach(id => document.getElementById(id).addEventListener('change', updateReadPreview));
+  ['rGen','rTariff','rPaid','rGrid','rInjected'].forEach(id => document.getElementById(id).addEventListener('input', updateReadPreview));
+
+  function updateReadPreview(){
+    const d = readFormData();
+    d.id = editingReadId || '__draft__';
+    const c = clientById(d.clientId);
+    const k = calcRead(d, c);
+    document.getElementById('pForecast').textContent = k.forecast ? fmtNum(k.forecast) + ' kWh' : '—';
+    document.getElementById('pPct').textContent = k.pct !== null ? fmtPct(k.pct) : '—';
+    const st = document.getElementById('pStatus');
+    st.innerHTML = k.status ? `<span class="badge ${k.status}">${k.status==='ok'?'OK':(k.status==='atencao'?'Atenção':'Verificar')}</span>` : '—';
+    document.getElementById('pEcoLabel').textContent = k.ecoType === 'estimada' ? 'Economia (estimada)' : (k.ecoType === 'real' ? 'Economia real' : 'Economia');
+    document.getElementById('pEco').textContent = k.eco !== null ? fmtBRL(k.eco) : '—';
+    const bd = document.getElementById('pBreakdown');
+    if(k.ecoType === 'real'){
+      bd.style.display = 'grid';
+      bd.innerHTML = `<div>Autoconsumo (gerado − injetado): ${fmtNum(k.autoconsumo)} kWh</div>
+        <div>Consumo total da casa: ${fmtNum(k.consumoTotal)} kWh</div>
+        <div>Conta sem solar: ${fmtBRL(k.semSolar)}</div>
+        <div>Conta paga: ${fmtBRL(d.paid)}</div>`;
+    } else { bd.style.display = 'none'; bd.innerHTML = ''; }
+    const warns = [...k.warnings];
+    if(k.status === 'verificar') warns.unshift('Geração abaixo de 75% do previsto. Antes de enviar, abra o app e veja os alertas do inversor.');
+    if(!editingReadId && c && reads.some(r => r.clientId === c.id && r.month === d.month)) warns.unshift('Já existe um lançamento deste cliente para este mês. Salvar vai criar um duplicado.');
+    document.getElementById('pWarn').innerHTML = (d.gen !== null ? warns : warns.filter(w => w.startsWith('Já existe'))).map(w => `<div class="warn-note">⚠ ${escapeHtml(w)}</div>`).join('');
+    // Mensagem: para prévia, simula a leitura dentro da lista
+    const msgEl = document.getElementById('pMsg');
+    if(c && d.gen !== null){
+      const saved = reads;
+      reads = reads.filter(r => r.id !== d.id).concat([d]);
+      const msg = buildMessage(d, c);
+      reads = saved;
+      msgEl.style.display = 'block';
+      msgEl.textContent = msg;
+    } else { msgEl.style.display = 'none'; }
+  }
+
+  document.getElementById('rCancel').addEventListener('click', closeReadForm);
+  document.getElementById('rSave').addEventListener('click', async () => {
+    const d = readFormData();
+    if(!d.clientId){ toast('Escolha o cliente.'); return; }
+    if(d.gen === null){ toast('Preencha a geração do mês.'); return; }
+    const prev = editingReadId ? reads.find(r => r.id === editingReadId) : null;
+    const data = Object.assign({}, d, {
+      id: editingReadId || uid(),
+      sent: prev ? !!prev.sent : false,
+      checked: prev ? !!prev.checked : false,
+      createdAt: (prev && prev.createdAt) || new Date().toISOString()
+    });
+    const ok = await write(readsRef, data, editingReadId ? 'Mês atualizado' : 'Mês salvo');
+    if(ok){ closeReadForm(); showMessage(data.id); }
+  });
+
+  // ---------- Mensagem ----------
+  function showMessage(readId){
+    const r = reads.find(x => x.id === readId) || null;
+    // logo após salvar, o snapshot pode ainda não ter chegado
+    setTimeout(() => {
+      const rr = reads.find(x => x.id === readId) || r;
+      if(!rr) return;
+      openMsgCard(rr);
+    }, r ? 0 : 400);
+  }
+
+  function openMsgCard(r){
+    const c = clientById(r.clientId);
+    if(!c) return;
+    const msg = buildMessage(r, c);
+    let box = document.getElementById('msgCard');
+    if(!box){
+      box = document.createElement('div');
+      box.id = 'msgCard';
+      box.className = 'form-card open';
+      document.getElementById('readForm').insertAdjacentElement('afterend', box);
+    }
+    const k = calcRead(r, c);
+    const link = waLink(c.phone, msg);
+    box.className = 'form-card open';
+    box.innerHTML = `<div class="form-card-title">Mensagem para ${escapeHtml(c.firstName || c.name)} · ${keyLabel(r.month)}</div>
+      ${k.status === 'verificar' ? '<div class="warn-note" style="margin-bottom:10px;">⚠ Geração baixa. Verifique o app antes de enviar.</div>' : ''}
+      <div class="msg-box" style="margin-top:0;">${escapeHtml(msg)}</div>
+      <div class="form-actions" style="margin-top:14px;">
+        <button class="btn btn-ghost" data-act="close-msg">Fechar</button>
+        <button class="btn btn-ghost" data-act="copy-msg" data-id="${r.id}">Copiar</button>
+        ${link ? `<a class="btn btn-green" href="${link}" target="_blank" rel="noopener" data-act="wa" data-id="${r.id}">Abrir no WhatsApp</a>` : ''}
+        <button class="btn btn-primary" data-act="mark-sent" data-id="${r.id}">${r.sent ? 'Marcar como não enviada' : 'Marcar como enviada'}</button>
+      </div>
+      ${!c.phone ? '<div class="hint" style="text-align:right;">Cadastre o WhatsApp do cliente para abrir direto.</div>' : ''}`;
+    box.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  async function setReadFlag(id, field, value){
+    const r = reads.find(x => x.id === id);
+    if(!r) return;
+    await write(readsRef, Object.assign({}, r, {[field]: value}));
+  }
+
+  // ---------- Eventos globais ----------
+  document.getElementById('newClientBtn').addEventListener('click', () => openClientForm(null));
+  document.getElementById('newReadBtn').addEventListener('click', () => openReadForm({}));
+  document.getElementById('search').addEventListener('input', e => { searchQuery = e.target.value.trim().toLowerCase(); renderClients(); });
+
+  document.getElementById('tabPos').addEventListener('click', async e => {
+    const t = e.target.closest('[data-act]');
+    if(!t) return;
+    const act = t.dataset.act, id = t.dataset.id;
+    if(act === 'expand'){
+      const body = document.querySelector(`.card-body[data-id="${id}"]`);
+      if(body) body.classList.toggle('open');
+      return;
+    }
+    if(act === 'new-read'){ openReadForm({clientId: t.dataset.client, month: t.dataset.month || null}); return; }
+    if(act === 'edit-read'){ const r = reads.find(x => x.id === id); if(r) openReadForm({read: r}); return; }
+    if(act === 'edit-client'){ const c = clientById(id); if(c) openClientForm(c); return; }
+    if(act === 'show-msg'){ const r = reads.find(x => x.id === id); if(r) openMsgCard(r); return; }
+    if(act === 'close-msg'){ const b = document.getElementById('msgCard'); if(b) b.remove(); return; }
+    if(act === 'copy-msg'){
+      const r = reads.find(x => x.id === id); if(!r) return;
+      const msg = buildMessage(r, clientById(r.clientId));
+      try{ await navigator.clipboard.writeText(msg); toast('Mensagem copiada'); }
+      catch(err){ toast('Não deu para copiar. Selecione o texto manualmente.'); }
+      return;
+    }
+    if(act === 'wa'){ setTimeout(() => toast('Depois de enviar, marque como enviada.'), 500); return; }
+    if(act === 'mark-sent'){
+      const r = reads.find(x => x.id === id); if(!r) return;
+      await setReadFlag(id, 'sent', !r.sent);
+      const b = document.getElementById('msgCard'); if(b) b.remove();
+      return;
+    }
+    if(act === 'mark-checked'){ await setReadFlag(id, 'checked', true); toast('Marcado como verificado'); return; }
+    if(act === 'del-read' || act === 'del-client'){
+      if(t.dataset.confirming !== '1'){
+        t.dataset.confirming = '1'; const orig = t.textContent; t.textContent = 'Confirmar?';
+        setTimeout(() => { if(t.isConnected){ t.dataset.confirming = '0'; t.textContent = orig; } }, 3000);
+        return;
+      }
+      if(act === 'del-read'){ await remove(readsRef, id); return; }
+      const rs = readsOf(id);
+      for(const r of rs) await remove(readsRef, r.id);
+      await remove(clientsRef, id);
+      return;
+    }
+  });
 
 })();
 </script>
