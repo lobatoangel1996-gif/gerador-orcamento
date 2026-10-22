@@ -20,6 +20,8 @@ Não invente números: se não estiver legível, use null.`,
   conta: `A imagem/documento é uma conta de energia elétrica de uma distribuidora brasileira, de um cliente com geração distribuída (energia solar).
 Extraia os dados e responda SOMENTE com um JSON, sem texto em volta, neste formato:
 {"mes_referencia": "AAAA-MM" ou null (mês de referência da conta),
+ "leitura_anterior": "AAAA-MM-DD" ou null (data da leitura anterior do medidor),
+ "leitura_atual": "AAAA-MM-DD" ou null (data da leitura atual do medidor),
  "valor_total": número ou null (total a pagar, em R$),
  "consumo_rede_kwh": número ou null (energia ativa consumida/fornecida pela rede no período, em kWh; é o consumo medido, não o faturado após compensação),
  "energia_injetada_kwh": número ou null (energia injetada na rede pelo sistema solar no período, em kWh; não confundir com saldo de créditos acumulados),
