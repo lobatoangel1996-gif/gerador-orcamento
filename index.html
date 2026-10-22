@@ -184,6 +184,12 @@
   #tabPos .todo-text .why{ font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 3px; }
   #tabPos .empty{ padding: 24px 0; }
   #tabPos .pv-search{ max-width: 320px; margin-bottom: 14px; }
+  #tabPos .ai-row{ display:flex; align-items:center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  #tabPos .ai-status{ font-family: var(--font-mono); font-size: 11px; color: var(--text-faint); line-height: 1.5; }
+  #tabPos .ai-status.busy{ color: var(--amber); }
+  #tabPos .ai-status.ok{ color: var(--green); }
+  #tabPos .ai-status.err{ color: var(--red); }
+  #tabPos input.ai-filled{ border-color: var(--green); }
   .toast{ position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 10px 16px; border-radius: 10px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 10; }
   .toast.show{ opacity: 1; }
   @media print{ .toast{ display:none; } }
@@ -454,6 +460,10 @@
       <div><label>Mês</label><select id="rMonth"></select></div>
       <div><label>Ano</label><select id="rYear"></select></div>
     </div>
+    <div class="ai-row">
+      <button class="btn btn-ghost btn-sm" type="button" data-act="ai-pick" data-kind="geracao">📷 Ler print do app</button>
+      <span class="ai-status" id="aiStatus-geracao">Print da tela "Mês" (ou "Ano") do app de monitoramento.</span>
+    </div>
     <div class="form-row">
       <div><label>Geração do mês no app (kWh)</label><input type="number" id="rGen" step="0.01" placeholder="Ex: 835"></div>
       <div><label>Tarifa do mês (R$/kWh)</label><input type="number" id="rTariff" step="0.0001"><div class="hint">Vem do cadastro. Mude se a tarifa mudou.</div></div>
@@ -461,6 +471,10 @@
 
     <div class="sub-block">
       <div class="sub-block-title">Dados da conta de luz (é isso que dá a economia real)</div>
+      <div class="ai-row">
+        <button class="btn btn-ghost btn-sm" type="button" data-act="ai-pick" data-kind="conta">📷 Ler foto da conta</button>
+        <span class="ai-status" id="aiStatus-conta">Foto ou PDF da conta de luz.</span>
+      </div>
       <div class="form-row three" style="margin-bottom:0;">
         <div><label>Valor pago na conta (R$)</label><input type="number" id="rPaid" step="0.01" placeholder="145.00"></div>
         <div><label>Energia comprada da rede (kWh)</label><input type="number" id="rGrid" step="0.01" placeholder="Consumo / energia ativa"></div>
@@ -1486,6 +1500,8 @@
     if(clients.length === 0){ toast('Cadastre um cliente primeiro.'); return; }
     const r = opts.read || null;
     editingReadId = r ? r.id : null;
+    aiStatus('geracao', '', 'Print da tela "Mês" (ou "Ano") do app de monitoramento.');
+    aiStatus('conta', '', 'Foto ou PDF da conta de luz.');
     document.getElementById('readFormTitle').textContent = r ? 'Editar mês' : 'Lançar mês';
     document.getElementById('rSave').textContent = r ? 'Atualizar mês' : 'Salvar mês';
     renderClientSelect(r ? r.clientId : opts.clientId);
@@ -1612,6 +1628,129 @@
     await write(readsRef, Object.assign({}, r, {[field]: value}));
   }
 
+  // ---------- Leitura de print / conta com IA ----------
+  const aiInput = document.createElement('input');
+  aiInput.type = 'file';
+  aiInput.accept = 'image/*,application/pdf';
+  aiInput.style.display = 'none';
+  document.body.appendChild(aiInput);
+  let aiKind = null;
+
+  function aiStatus(kind, cls, text){
+    const el = document.getElementById('aiStatus-' + kind);
+    el.className = 'ai-status' + (cls ? ' ' + cls : '');
+    el.textContent = text;
+  }
+
+  function fileToPayload(file){
+    return new Promise((resolve, reject) => {
+      if(file.type === 'application/pdf'){
+        if(file.size > 3 * 1024 * 1024){ reject(new Error('PDF muito grande (máx. 3 MB). Tire um print da conta.')); return; }
+        const fr = new FileReader();
+        fr.onload = () => resolve({mediaType: 'application/pdf', data: String(fr.result).split(',')[1]});
+        fr.onerror = () => reject(new Error('Não foi possível ler o arquivo.'));
+        fr.readAsDataURL(file);
+        return;
+      }
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        const max = 1800;
+        const scale = Math.min(1, max / Math.max(img.width, img.height));
+        const cv = document.createElement('canvas');
+        cv.width = Math.round(img.width * scale); cv.height = Math.round(img.height * scale);
+        const ctx = cv.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+        ctx.drawImage(img, 0, 0, cv.width, cv.height);
+        URL.revokeObjectURL(url);
+        resolve({mediaType: 'image/jpeg', data: cv.toDataURL('image/jpeg', 0.85).split(',')[1]});
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Formato de imagem não suportado. Use um print (PNG/JPG).')); };
+      img.src = url;
+    });
+  }
+
+  function setField(id, val){
+    if(val === null || val === undefined || isNaN(val)) return false;
+    const el = document.getElementById(id);
+    el.value = Math.round(val * 100) / 100;
+    el.classList.add('ai-filled');
+    setTimeout(() => el.classList.remove('ai-filled'), 4000);
+    return true;
+  }
+  function selectedKey(){ return monthKey(parseInt(document.getElementById('rYear').value), parseInt(document.getElementById('rMonth').value)); }
+  function selectMonth(key){
+    if(!/^\d{4}-\d{2}$/.test(key || '')) return;
+    const {y, m} = parseKey(key);
+    const ySel = document.getElementById('rYear');
+    if(![...ySel.options].some(o => o.value == y)) ySel.insertAdjacentHTML('beforeend', `<option value="${y}">${y}</option>`);
+    ySel.value = y;
+    document.getElementById('rMonth').value = m;
+  }
+
+  function applyGeracao(d){
+    const notes = [];
+    if(d.periodo === 'dia') return {ok:false, text:'Esse print é de um dia só. No app, abra a visão "Mês" e tire o print de novo.'};
+    if(d.periodo === 'mes' && d.geracao_kwh !== null && d.geracao_kwh !== undefined){
+      if(d.referencia) selectMonth(d.referencia);
+      setField('rGen', d.geracao_kwh);
+      notes.push(`Lido: ${fmtNum(d.geracao_kwh, 1)} kWh${d.referencia ? ' em ' + keyLabel(d.referencia) : ''}.`);
+    } else if(Array.isArray(d.meses) && d.meses.length){
+      const key = selectedKey();
+      const hit = d.meses.find(x => x.mes === key);
+      if(hit){ setField('rGen', hit.kwh); notes.push(`Lido da visão anual: ${fmtNum(hit.kwh, 1)} kWh em ${keyLabel(key)}.`); }
+      else return {ok:false, text:`O print tem ${d.meses.length} meses, mas não ${keyLabel(key)}. Escolha o mês certo no seletor e leia de novo.`};
+    } else {
+      return {ok:false, text: d.aviso || 'Não encontrei a geração no print. Tente a visão "Mês" do app.'};
+    }
+    if(d.aviso) notes.push(d.aviso);
+    notes.push('Confira antes de salvar.');
+    return {ok:true, text: notes.join(' ')};
+  }
+
+  function applyConta(d){
+    const notes = [];
+    const a = setField('rPaid', d.valor_total);
+    const b = setField('rGrid', d.consumo_rede_kwh);
+    const c = setField('rInjected', d.energia_injetada_kwh);
+    if(!a && !b && !c) return {ok:false, text: d.aviso || 'Não consegui ler a conta. Tente uma foto mais nítida, com a tabela de itens visível.'};
+    if(d.tarifa_kwh && !document.getElementById('rTariff').value) setField('rTariff', d.tarifa_kwh);
+    const missing = [!a && 'valor pago', !b && 'energia comprada', !c && 'energia injetada'].filter(Boolean);
+    if(missing.length) notes.push('Não encontrei: ' + missing.join(', ') + '. Preencha à mão.');
+    if(d.mes_referencia && d.mes_referencia !== selectedKey()) notes.push(`Atenção: a conta é de ${keyLabel(d.mes_referencia)} e o mês selecionado é ${keyLabel(selectedKey())}.`);
+    if(d.aviso) notes.push(d.aviso);
+    notes.push('Confira antes de salvar.');
+    return {ok:true, text: notes.join(' ')};
+  }
+
+  aiInput.addEventListener('change', async () => {
+    const file = aiInput.files && aiInput.files[0];
+    const kind = aiKind;
+    aiInput.value = '';
+    if(!file || !kind) return;
+    aiStatus(kind, 'busy', 'Lendo… (leva uns segundos)');
+    try{
+      const payload = await fileToPayload(file);
+      const user = auth.currentUser;
+      if(!user) throw new Error('Sessão expirada. Entre de novo.');
+      const token = await user.getIdToken();
+      const resp = await fetch('/api/ler-imagem', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token},
+        body: JSON.stringify({kind, mediaType: payload.mediaType, data: payload.data})
+      });
+      let out = null;
+      try{ out = await resp.json(); }catch(e){}
+      if(!resp.ok || !out || !out.ok) throw new Error((out && out.error) || ('Erro ' + resp.status + ' ao ler a imagem.'));
+      const res = kind === 'geracao' ? applyGeracao(out.data) : applyConta(out.data);
+      aiStatus(kind, res.ok ? 'ok' : 'err', res.text);
+      updateReadPreview();
+    }catch(err){
+      console.error(err);
+      aiStatus(kind, 'err', err.message || 'Falha ao ler.');
+    }
+  });
+
   // ---------- Eventos globais ----------
   document.getElementById('newClientBtn').addEventListener('click', () => openClientForm(null));
   document.getElementById('newReadBtn').addEventListener('click', () => openReadForm({}));
@@ -1621,6 +1760,7 @@
     const t = e.target.closest('[data-act]');
     if(!t) return;
     const act = t.dataset.act, id = t.dataset.id;
+    if(act === 'ai-pick'){ aiKind = t.dataset.kind; aiInput.click(); return; }
     if(act === 'expand'){
       const body = document.querySelector(`.card-body[data-id="${id}"]`);
       if(body) body.classList.toggle('open');
