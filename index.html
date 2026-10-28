@@ -1459,16 +1459,20 @@
   }
 
   function billMessage(b, c){
-    // Mensagem curta: geração, sem solar, com solar, economia e créditos. Todo o resto fica no painel.
+    // Mensagem curta com o valor real da conta. Os itens que não são energia (iluminação pública, multa, ajustes)
+    // entram dos dois lados (com e sem solar), então a economia continua sendo só a da energia.
     const k = calcBill(b, c);
     if(k.eco === null) return '';
+    const extras = has(b.paid) ? b.paid - k.energiaPaga : 0;
+    const comSolar = has(b.paid) ? b.paid : k.energiaPaga;
+    const semSolar = k.semSolar + extras;
     const linhas = [
       `Olá, ${firstName(c)}! Resumo da sua conta de ${dateBR(b.start)} a ${dateBR(b.end)} ☀️`,
       '',
       `• Geração do sistema: ${fmtNum(k.gen)} kWh`,
-      `• Sem o solar, a energia custaria: ${fmtBRL(k.semSolar)}`,
-      `• Com o solar, ficou em: ${fmtBRL(k.energiaPaga)}`,
-      `• Economia: ${fmtBRL(k.eco)}`
+      `• Sem o solar, a conta seria: ${fmtBRL(semSolar)}`,
+      `• Com o solar, a conta veio: ${fmtBRL(comSolar)}`,
+      `• Economia: ${fmtBRL(semSolar - comSolar)}`
     ];
     if(k.credKwh !== null && k.credKwh > 0) linhas.push(`• Créditos guardados: ${fmtNum(k.credKwh)} kWh`);
     linhas.push('', 'Qualquer dúvida, é só chamar!');
