@@ -190,6 +190,31 @@
   #tabPos .ai-status.ok{ color: var(--green); }
   #tabPos .ai-status.err{ color: var(--red); }
   #tabPos input.ai-filled{ border-color: var(--green); }
+  #tabPos .fields-title{ font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--amber); margin: 14px 0 8px; }
+  #tabPos .inline-check{ display:flex; align-items:center; gap:6px; margin-top:6px; font-size: 11px; text-transform:none; }
+  #tabPos .inline-check input{ width:auto; }
+  #tabPos .ok-text{ color: var(--green); margin-top: 24px; }
+  #tabPos .gen-month{ padding: 12px 0; border-bottom: 1px solid var(--border); }
+  #tabPos .gen-month:last-child{ border-bottom: none; }
+  #tabPos .gen-month-head{ display:flex; justify-content:space-between; align-items:flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+  #tabPos .gen-btns{ display:flex; gap: 8px; flex-wrap: wrap; }
+  #tabPos .gm{ font-weight: 600; font-size: 14px; }
+  #tabPos .gs{ font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  #tabPos .gs.ok{ color: var(--green); } #tabPos .gs.miss{ color: var(--amber); } #tabPos .gs.err{ color: var(--red); }
+  #tabPos .day-summary{ font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); line-height: 1.7; margin: 6px 0; }
+  #tabPos .day-summary b{ color: var(--text); } #tabPos .day-summary .miss{ color: var(--amber); }
+  #tabPos .day-details summary{ cursor:pointer; font-family: var(--font-mono); font-size: 12px; color: var(--amber); margin: 6px 0; }
+  #tabPos .day-grid{ display:grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 8px; }
+  @media (max-width: 640px){ #tabPos .day-grid{ grid-template-columns: repeat(4, 1fr); } }
+  #tabPos .day-cell{ display:flex; flex-direction:column; gap:2px; }
+  #tabPos .day-cell span{ font-family: var(--font-mono); font-size: 10px; color: var(--text-faint); }
+  #tabPos .day-cell input{ padding: 6px 6px; font-family: var(--font-mono); font-size: 12px; }
+  #tabPos .day-cell.in-period input{ border-color: rgba(255,176,32,.55); }
+  #tabPos .day-cell.in-period span{ color: var(--amber); }
+  #tabPos .alert-box{ margin-top: 14px; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(255,99,99,.35); background: rgba(255,99,99,.06); }
+  #tabPos .alert-title{ font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--red); margin-bottom: 8px; }
+  #tabPos .alert-item{ font-size: 13px; line-height: 1.5; padding: 4px 0 4px 10px; border-left: 3px solid var(--amber); margin-bottom: 6px; }
+  #tabPos .alert-item.red{ border-left-color: var(--red); color: #ffb3b3; }
   #tabPos .step{ background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
   #tabPos .step .preview{ background: var(--surface); }
   #tabPos .step input, #tabPos .step select{ background: var(--surface); }
@@ -395,6 +420,8 @@
   </div><!-- /tabOrc -->
 
   <div id="tabPos" style="display:none;">
+  <div style="margin-bottom:18px;"><button class="btn btn-primary" data-act="new-bill" style="width:100%; padding:14px; font-size:15px;">📷 Nova conta de luz</button></div>
+
   <div class="summary">
     <div class="stat"><div class="k">Clientes</div><div class="v" id="statClients">0</div></div>
     <div class="stat amber"><div class="k">Pendências</div><div class="v" id="statTodo">0</div></div>
@@ -404,7 +431,6 @@
 
   <!-- PENDÊNCIAS -->
   <div class="section">
-    <div style="margin-bottom:18px;"><button class="btn btn-primary" data-act="new-bill" style="width:100%; padding:14px; font-size:15px;">📷 Nova conta de luz</button></div>
     <div class="section-head"><div class="section-title">O que fazer agora</div><div id="pvSyncStatus" class="sync-status syncing"><span class="sync-dot"></span><span id="pvSyncStatusText">Conectando…</span></div></div>
     <div id="todoList"></div>
   </div>
@@ -417,9 +443,12 @@
       <select id="cImport"><option value="">— Nenhum orçamento vendido encontrado —</option></select>
       <div class="hint">Só lê o orçamento para preencher nome, kWp e inversor. Não altera nada no gerador.</div>
     </div>
-    <div class="form-row">
+    <div class="form-row three">
       <div><label>Nome do cliente</label><input type="text" id="cName" placeholder="Ex: João Silva"></div>
       <div><label>Primeiro nome (para a mensagem)</label><input type="text" id="cFirst" placeholder="Ex: João"></div>
+      <div><label>Tipo de cliente</label>
+        <select id="cType"><option value="residencia">Residência</option><option value="empresa">Empresa</option><option value="comercio">Comércio</option></select>
+      </div>
     </div>
     <div class="form-row three">
       <div><label>WhatsApp</label><input type="tel" id="cPhone" placeholder="(11) 99999-0000"></div>
@@ -438,20 +467,23 @@
         </select>
       </div>
     </div>
-    <div class="form-row">
-      <div><label>Nome da usina no app</label><input type="text" id="cPlant" placeholder="Como aparece no app"><div class="hint">Sem senha aqui.</div></div>
-      <div></div>
+    <div class="form-row three">
+      <div><label>Nome da usina no app</label><input type="text" id="cPlant" placeholder="Como aparece no app"></div>
+      <div><label>Tipo de ligação</label>
+        <select id="cLigacao"><option value="">— A conta preenche —</option><option value="monofasico">Monofásico</option><option value="bifasico">Bifásico</option><option value="trifasico">Trifásico</option></select>
+      </div>
+      <div><label>Conta média antes do solar (R$)</label><input type="number" id="cBillBefore" step="0.01" placeholder="780"><div class="hint">Usada para conferir a "conta sem solar".</div></div>
     </div>
     <div class="form-row">
-      <div><label>Tarifa cheia com impostos (R$/kWh)</label><input type="number" id="cTariff" step="0.0001" placeholder="0.98"><div class="hint">Pode deixar em branco: a leitura da conta preenche.</div></div>
-      <div><label>Conta média antes do solar (R$)</label><input type="number" id="cBillBefore" step="0.01" placeholder="780"><div class="hint">Só referência. Não entra no cálculo.</div></div>
+      <div><label>Tarifa de referência (R$/kWh)</label><input type="number" id="cTariff" step="0.0001" placeholder="0.95"><div class="hint">Só usada se a conta não trouxer TUSD e TE.</div></div>
+      <div></div>
     </div>
     <div class="sub-block">
       <div class="sub-block-title">Geração prevista mês a mês (kWh)</div>
       <div class="month-grid" id="cForecast"></div>
       <div class="inline-tools">
         <button class="btn btn-ghost btn-sm" id="cEstimateBtn" type="button">Estimar pelo kWp</button>
-        <span class="hint" style="margin:0;">Estimativa para a região de Itu/Sorocaba. O ideal é copiar os 12 valores da simulação do projeto.</span>
+        <span class="hint" style="margin:0;">Usada no alerta de geração baixa e na frase de sazonalidade. O ideal é copiar os 12 valores da simulação do projeto.</span>
       </div>
     </div>
     <div class="form-row">
@@ -463,29 +495,26 @@
     </div>
   </div>
 
-  <!-- FORM GERAÇÃO (print do app) -->
+  <!-- FORM GERAÇÃO (avulso) -->
   <div class="form-card" id="genForm">
-    <div class="form-card-title" id="genFormTitle">Lançar geração (print do app)</div>
-    <div class="ai-row">
-      <button class="btn btn-ghost btn-sm" type="button" data-act="ai-pick" data-kind="geracao">📷 Ler print do app</button>
-      <span class="ai-status" id="aiStatus-geracao">Print da tela "Mês" do app. Pode ser o mês atual, ainda pela metade.</span>
-    </div>
+    <div class="form-card-title" id="genFormTitle">Geração do mês</div>
     <div class="form-row three">
       <div><label>Cliente</label><select id="gClient" class="client-select"></select></div>
-      <div><label>Mês</label><select id="gMonth" class="month-select"></select></div>
-      <div><label>Ano</label><select id="gYear" class="year-select"></select></div>
+      <div><label>Mês</label><select id="gMonth"></select></div>
+      <div><label>Ano</label><select id="gYear"></select></div>
     </div>
-    <div class="form-row">
-      <div><label>Geração mostrada no print (kWh)</label><input type="number" id="gKwh" step="0.01" placeholder="Ex: 835"></div>
-      <div><label>O print cobre até o dia</label><input type="number" id="gDays" min="1" max="31" step="1"><div class="hint" id="gDaysHint">Mês completo.</div></div>
+    <div class="ai-row">
+      <button class="btn btn-primary btn-sm" type="button" data-act="ai-pick" data-kind="export" data-scope="gen">📄 Arquivo exportado do app</button>
+      <button class="btn btn-ghost btn-sm" type="button" data-act="ai-pick" data-kind="print" data-scope="gen">📷 Print do mês</button>
+      <span class="ai-status" id="aiStatus-gen">O arquivo exportado (botão de download do Solarman) traz os valores exatos de cada dia.</span>
     </div>
+    <div id="gEditor"></div>
     <div class="preview">
-      <div class="preview-title">Resultado</div>
       <div class="preview-grid">
-        <div class="preview-item"><div class="pk">Previsto no período</div><div class="pv" id="gpForecast">—</div></div>
+        <div class="preview-item"><div class="pk">Gerado</div><div class="pv" id="gpSum">—</div></div>
+        <div class="preview-item"><div class="pk">Previsto (mesmos dias)</div><div class="pv" id="gpForecast">—</div></div>
         <div class="preview-item"><div class="pk">% do previsto</div><div class="pv" id="gpPct">—</div></div>
         <div class="preview-item"><div class="pk">Status</div><div class="pv" id="gpStatus">—</div></div>
-        <div class="preview-item"><div class="pk">Média por dia</div><div class="pv" id="gpDaily">—</div></div>
       </div>
       <div id="gpWarn"></div>
     </div>
@@ -502,8 +531,8 @@
     <div class="step">
       <div class="step-head"><span class="step-n">1</span> Foto da conta de luz</div>
       <div class="ai-row">
-        <button class="btn btn-primary btn-sm" type="button" data-act="ai-pick" data-kind="conta">📷 Enviar foto da conta</button>
-        <span class="ai-status" id="aiStatus-conta">Foto ou PDF. O sistema lê o cliente, o período de cobrança, o valor e os kWh.</span>
+        <button class="btn btn-primary btn-sm" type="button" data-act="ai-pick" data-kind="conta" data-scope="bill">📷 Enviar foto da conta</button>
+        <span class="ai-status" id="aiStatus-conta">Foto ou PDF. O sistema lê cliente, período, tarifas, créditos, bandeira, multas, débitos e mais.</span>
       </div>
       <div class="form-row">
         <div><label>Cliente</label><select id="bClient" class="client-select"></select></div>
@@ -511,15 +540,42 @@
       </div>
       <details class="checkbox-details" id="bDetails">
         <summary>Conferir ou corrigir os números lidos</summary>
-        <div class="form-row three" style="margin-top:12px;">
+        <div class="fields-title">Período e ligação</div>
+        <div class="form-row three">
           <div><label>Leitura anterior</label><input type="date" id="bStart"></div>
           <div><label>Leitura atual</label><input type="date" id="bEnd"></div>
-          <div><label>Valor pago (R$)</label><input type="number" id="bPaid" step="0.01"></div>
+          <div><label>Tipo de ligação</label><select id="bLigacao"><option value="">—</option><option value="monofasico">Monofásico (30 kWh)</option><option value="bifasico">Bifásico (50 kWh)</option><option value="trifasico">Trifásico (100 kWh)</option></select></div>
+        </div>
+        <div class="fields-title">Energia (kWh)</div>
+        <div class="form-row three">
+          <div><label>Comprada da rede</label><input type="number" id="bGrid" step="0.01"></div>
+          <div><label>Injetada</label><input type="number" id="bInjected" step="0.01"></div>
+          <div><label>Compensada</label><input type="number" id="bKwhComp" step="0.01"></div>
+        </div>
+        <div class="fields-title">Tarifas com tributos (R$/kWh)</div>
+        <div class="form-row three">
+          <div><label>TUSD (consumo)</label><input type="number" id="bTusd" step="0.000001"></div>
+          <div><label>TE (consumo)</label><input type="number" id="bTe" step="0.000001"></div>
+          <div><label>TUSD compensada (injetada)</label><input type="number" id="bTusdComp" step="0.000001"></div>
+        </div>
+        <div class="form-row">
+          <div><label>Tarifa cheia (TUSD + TE)</label><input type="number" id="bTariff" step="0.000001"><div class="hint" id="bTariffHint">Calculada pela soma TUSD + TE.</div></div>
+          <div><label>Bandeira tarifária cobrada (R$)</label><input type="number" id="bBandeira" step="0.01"></div>
+        </div>
+        <div class="fields-title">Valores (R$)</div>
+        <div class="form-row three">
+          <div><label>Total a pagar</label><input type="number" id="bPaid" step="0.01"></div>
+          <div><label>Total Distribuidora</label><input type="number" id="bTotalDist" step="0.01"></div>
+          <div><label>Valor compensado</label><input type="number" id="bValorComp" step="0.01"><div class="hint">Soma dos créditos (injetada + bandeira), em positivo.</div></div>
         </div>
         <div class="form-row three">
-          <div><label>Energia comprada da rede (kWh)</label><input type="number" id="bGrid" step="0.01"></div>
-          <div><label>Energia injetada (kWh)</label><input type="number" id="bInjected" step="0.01"></div>
-          <div><label>Tarifa com impostos (R$/kWh)</label><input type="number" id="bTariff" step="0.0001"></div>
+          <div><label>Multa, juros e atualização</label><input type="number" id="bMulta" step="0.01"></div>
+          <div><label>Iluminação pública (CIP)</label><input type="number" id="bCip" step="0.01"><label class="inline-check"><input type="checkbox" id="bCipIn" checked> está dentro do Total Distribuidora</label></div>
+          <div><label>Ajustes / créditos avulsos</label><input type="number" id="bAjustes" step="0.01"><div class="hint">Negativo = crédito; positivo = cobrança.</div></div>
+        </div>
+        <div class="form-row">
+          <div><label>Saldo de créditos na distribuidora (kWh)</label><input type="number" id="bSaldo" step="0.01"></div>
+          <div><label>Débitos em aberto</label><input type="text" id="bDebitos" placeholder="Ex: 2026-08-15 120,50; 2026-09-15 98,00"><div class="hint">Data e valor, separados por ";".</div></div>
         </div>
         <div class="form-row" style="margin-bottom:0;"><div style="grid-column:1/-1;"><label>Observações</label><input type="text" id="bNotes" placeholder="Opcional"></div></div>
       </details>
@@ -527,21 +583,28 @@
     </div>
 
     <div class="step" id="bStep2">
-      <div class="step-head"><span class="step-n">2</span> Prints de geração do período</div>
-      <div id="bGenList"><div class="hint">Envie a conta primeiro: o sistema vai dizer quais prints precisa.</div></div>
+      <div class="step-head"><span class="step-n">2</span> Geração de cada dia do período</div>
+      <div id="bGenList"><div class="hint">Envie a conta primeiro: o sistema vai dizer de quais meses precisa.</div></div>
     </div>
 
     <div class="step">
       <div class="step-head"><span class="step-n">3</span> Resultado</div>
       <div class="preview" style="margin-bottom:0;">
         <div class="preview-grid">
-          <div class="preview-item"><div class="pk">Período</div><div class="pv" id="bpPeriod">—</div></div>
           <div class="preview-item"><div class="pk">Geração no período</div><div class="pv" id="bpGen">—</div></div>
           <div class="preview-item"><div class="pk">Conta sem solar</div><div class="pv" id="bpNoSolar">—</div></div>
+          <div class="preview-item"><div class="pk">Energia paga com solar</div><div class="pv" id="bpPaidEnergy">—</div></div>
           <div class="preview-item green"><div class="pk">Economia</div><div class="pv" id="bpEco">—</div></div>
+        </div>
+        <div class="preview-grid" style="margin-top:14px;">
+          <div class="preview-item"><div class="pk">Crédito gerado</div><div class="pv" id="bpCredKwh">—</div></div>
+          <div class="preview-item"><div class="pk">Crédito em R$</div><div class="pv" id="bpCredRS">—</div></div>
+          <div class="preview-item"><div class="pk">Piso esperado da conta</div><div class="pv" id="bpPiso">—</div></div>
+          <div class="preview-item"><div class="pk">Previsto no período</div><div class="pv" id="bpForecast">—</div></div>
         </div>
         <div class="breakdown" id="bpBreakdown"></div>
         <div id="bpWarn"></div>
+        <div class="alert-box" id="bpAlerts" style="display:none;"></div>
         <div class="msg-box" id="bpMsg" style="display:none;"></div>
       </div>
     </div>
@@ -557,8 +620,7 @@
     <div class="section-head">
       <div class="section-title">Clientes</div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="btn btn-primary" data-act="new-bill">+ Nova conta de luz</button>
-        <button class="btn btn-ghost" data-act="new-gen">+ Print de geração</button>
+        <button class="btn btn-ghost" data-act="new-gen">+ Geração do mês</button>
         <button class="btn btn-ghost" id="newClientBtn">+ Novo cliente</button>
       </div>
     </div>
@@ -1169,24 +1231,29 @@
 </script>
 <script>
 (function(){
-  // Pós-venda: usa o mesmo Firebase já iniciado pelo gerador; dados em coleções próprias.
-  // Registros em posvenda_leituras têm type = 'geracao' (print do app, por mês) ou 'conta' (conta de luz, por período de leitura).
+  // Pós-venda. Usa o Firebase já iniciado pelo gerador.
+  // posvenda_clientes: cadastro. posvenda_leituras: type 'geracao' (geração diária de um mês) ou 'conta' (conta de luz por período de leitura).
   const auth = firebase.auth();
   const db = firebase.firestore();
 
   const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const MONTHS_FULL = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-  // Irradiação diária aproximada no plano inclinado (kWh/m²/dia), região de Itu/Sorocaba. Só para estimar a previsão.
-  const HSP = [5.2,5.4,5.0,4.9,4.4,4.2,4.4,5.0,4.9,5.1,5.3,5.3];
+  const HSP = [5.2,5.4,5.0,4.9,4.4,4.2,4.4,5.0,4.9,5.1,5.3,5.3]; // irradiação aprox. Itu/Sorocaba (kWh/m²/dia)
   const DAYS = [31,28,31,30,31,30,31,31,30,31,30,31];
   const PR = 0.78;
   const MIN_DAYS_FOR_STATUS = 7;
+  const MINIMO_LIGACAO = {monofasico: 30, bifasico: 50, trifasico: 100};
+  const LOCAL = {residencia: {consumo:'Consumo total da casa', da:'da sua casa', sua:'sua casa'}, empresa: {consumo:'Consumo total da empresa', da:'da sua empresa', sua:'sua empresa'}, comercio: {consumo:'Consumo total do comércio', da:'do seu comércio', sua:'seu comércio'}};
+  const XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
 
   let clients = [], recs = [], soldQuotes = [];
   let clientsRef = null, recsRef = null, quotesRef = null;
   let unsubs = [];
-  let editingClientId = null, editingGenId = null, editingBillId = null;
+  let editingClientId = null, editingBillId = null;
+  let billPresetClient = false;
   let searchQuery = '';
+  // Editores de geração diária: editors[scope][mês] = {daily:{dia:kWh}, topTotal, source, estimated}
+  const editors = {bill: {}, gen: {}};
 
   // ---------- Utilidades ----------
   function uid(){ return Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4); }
@@ -1196,18 +1263,20 @@
   function escapeHtml(str){ const div = document.createElement('div'); div.textContent = (str===undefined||str===null)?'':String(str); return div.innerHTML; }
   function num(id){ const v = document.getElementById(id).value; if(v===''||v===null) return null; const n = parseFloat(String(v).replace(',','.')); return isNaN(n)?null:n; }
   function txt(id){ return document.getElementById(id).value.trim(); }
-  function has(v){ return v !== null && v !== undefined && v !== ''; }
+  function has(v){ return v !== null && v !== undefined && v !== '' && !(typeof v === 'number' && isNaN(v)); }
+  function n0(v){ return has(v) ? v : 0; }
   function monthKey(y,m){ return y + '-' + String(m+1).padStart(2,'0'); }
   function parseKey(k){ const [y,m] = k.split('-').map(Number); return {y, m: m-1}; }
   function keyLabel(k){ const {y,m} = parseKey(k); return MONTHS[m] + '/' + y; }
+  function keyName(k){ const {y,m} = parseKey(k); return MONTHS_FULL[m].charAt(0).toUpperCase() + MONTHS_FULL[m].slice(1) + '/' + y; }
+  function nextKey(k){ const {y,m} = parseKey(k); return m === 11 ? monthKey(y+1, 0) : monthKey(y, m+1); }
   function daysInMonth(k){ const {y,m} = parseKey(k); return new Date(y, m+1, 0).getDate(); }
   function parseDate(s){ if(!s) return null; const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
-  function isoDate(dt){ return dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0'); }
-  function dateBR(s){ if(!s) return '—'; const [y,m,d] = s.split('-'); return d + '/' + m; }
-  function dateBRFull(s){ if(!s) return '—'; const [y,m,d] = s.split('-'); return d + '/' + m + '/' + y; }
+  function dateBR(s){ if(!s) return '—'; const p = s.split('-'); return p[2] + '/' + p[1]; }
+  function dateBRFull(s){ if(!s) return '—'; const p = s.split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : s; }
   function currentKey(){ const d = new Date(); return monthKey(d.getFullYear(), d.getMonth()); }
   function prevMonthKey(){ const d = new Date(); d.setDate(1); d.setMonth(d.getMonth()-1); return monthKey(d.getFullYear(), d.getMonth()); }
-  function toast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), 2400); }
+  function toast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), 2600); }
   function waLink(phone, text){
     let d = (phone||'').replace(/\D/g,'');
     if(!d) return null;
@@ -1216,6 +1285,18 @@
   }
   function statusLabel(s){ return s==='ok'?'OK':(s==='atencao'?'Atenção':(s==='verificar'?'Verificar':'')); }
   function badge(s){ return s ? `<span class="badge ${s}">${statusLabel(s)}</span>` : ''; }
+  function local(c){ return LOCAL[(c && c.type) || 'residencia'] || LOCAL.residencia; }
+  function firstName(c){ return c.firstName || (c.name||'').split(' ')[0] || ''; }
+  function parseDebitos(s){
+    if(Array.isArray(s)) return s;
+    return String(s||'').split(/[;\n]/).map(x => x.trim()).filter(Boolean).map(x => {
+      const m = x.match(/^(\S+)\s+(.+)$/);
+      if(!m) return null;
+      const v = parseFloat(m[2].replace(/[^\d,.-]/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',', '.'));
+      return isNaN(v) ? null : {data: m[1], valor: v};
+    }).filter(Boolean);
+  }
+  function debitosText(arr){ return (arr||[]).map(d => `${d.data} ${String(d.valor).replace('.', ',')}`).join('; '); }
 
   // ---------- Dados ----------
   function clientById(id){ return clients.find(c => c.id === id); }
@@ -1223,105 +1304,170 @@
   function billsOf(cid){ return recs.filter(r => r.type === 'conta' && r.clientId === cid).sort((a,b) => (a.end||'').localeCompare(b.end||'')); }
   function genFor(cid, key){ return recs.find(r => r.type === 'geracao' && r.clientId === cid && r.month === key); }
   function genId(cid, key){ return 'g_' + cid + '_' + key; }
+  function dailyOf(g){ return (g && g.daily) || {}; }
+  function dailySum(daily){ return Object.values(daily||{}).reduce((s,v) => s + (has(v) ? v : 0), 0); }
+  function maxDay(daily){ const ks = Object.keys(daily||{}).filter(k => has(daily[k])).map(Number); return ks.length ? Math.max(...ks) : 0; }
+  function forecastPerDay(c, key){ const {m} = parseKey(key); const f = c && c.forecast && c.forecast[m]; return f ? f / daysInMonth(key) : null; }
 
   // ---------- Cálculos ----------
+  function topCheck(ed){
+    if(!ed || !has(ed.topTotal) || !ed.topTotal) return null;
+    const s = dailySum(ed.daily);
+    const diff = Math.abs(s - ed.topTotal) / ed.topTotal;
+    return {sum: s, top: ed.topTotal, diff, bad: diff > 0.03};
+  }
+
   function calcGen(g, c){
-    const out = {forecast:null, pct:null, status:null, covered:null, full:true, daily:null};
+    const out = {sum:0, covered:0, full:false, forecast:null, pct:null, status:null};
     if(!g || !g.month) return out;
-    const dim = daysInMonth(g.month);
-    out.covered = has(g.days) ? Math.min(g.days, dim) : dim;
+    const daily = dailyOf(g), dim = daysInMonth(g.month);
+    out.sum = dailySum(daily);
+    out.covered = maxDay(daily);
     out.full = out.covered >= dim;
-    if(has(g.kwh) && out.covered) out.daily = g.kwh / out.covered;
-    const {m} = parseKey(g.month);
-    const fm = c && c.forecast && c.forecast[m] ? c.forecast[m] : null;
-    if(fm){
-      out.forecast = fm * out.covered / dim;
-      if(has(g.kwh)){
-        out.pct = g.kwh / out.forecast;
-        if(out.covered >= MIN_DAYS_FOR_STATUS) out.status = out.pct >= 0.9 ? 'ok' : (out.pct >= 0.75 ? 'atencao' : 'verificar');
-      }
+    const fpd = forecastPerDay(c, g.month);
+    if(fpd && out.covered){
+      out.forecast = fpd * out.covered;
+      out.pct = out.sum / out.forecast;
+      if(out.covered >= MIN_DAYS_FOR_STATUS) out.status = out.pct >= 0.9 ? 'ok' : (out.pct >= 0.75 ? 'atencao' : 'verificar');
     }
     return out;
   }
 
-  // Divide o período da conta (leitura anterior até a véspera da leitura atual) em dias por mês
-  function periodByMonth(start, end){
+  // Dias do período de cobrança: da leitura anterior até a véspera da leitura atual
+  function periodDays(start, end){
     const s = parseDate(start), e = parseDate(end);
     if(!s || !e || e <= s) return null;
-    const map = {}; let total = 0;
+    const days = [], months = {};
     for(let d = new Date(s); d < e; d.setDate(d.getDate()+1)){
       const k = monthKey(d.getFullYear(), d.getMonth());
-      if(!map[k]) map[k] = {key:k, days:0, firstDay:d.getDate(), lastDay:0};
-      map[k].days++; map[k].lastDay = d.getDate(); total++;
+      days.push({key: k, day: d.getDate()});
+      if(!months[k]) months[k] = {key: k, first: d.getDate(), last: d.getDate(), days: 0};
+      months[k].last = d.getDate(); months[k].days++;
     }
-    return {total, months: Object.values(map)};
+    return {days, months: Object.values(months), total: days.length};
+  }
+
+  function billTariff(b, c){
+    if(has(b.tusd) && has(b.te)) return b.tusd + b.te;
+    if(has(b.tariff)) return b.tariff;
+    return c && has(c.tariff) ? c.tariff : null;
   }
 
   function calcBill(b, c){
-    const out = {days:null, parts:[], gen:null, missing:[], autoconsumo:null, consumoTotal:null, semSolar:null, eco:null, warnings:[]};
+    const out = {per:null, gen:null, missing:{}, missingKeys:[], tariff:null, bandeiraKwh:0, autoconsumo:null, consumoTotal:null,
+      semSolar:null, energiaPaga:null, eco:null, credKwh:null, credRS:null, piso:null, forecast:null, alerts:[], warnings:[]};
     if(!b || !c) return out;
-    const per = periodByMonth(b.start, b.end);
-    if(!per){ if(b.start || b.end) out.warnings.push('Confira as datas: a leitura atual precisa ser depois da anterior.'); return out; }
-    out.days = per.total;
-    if(per.total > 40) out.warnings.push(`Período de ${per.total} dias: confira as datas de leitura.`);
-    let gen = 0;
-    per.months.forEach(pm => {
-      const g = genFor(c.id, pm.key);
-      if(!g || !has(g.kwh)){ out.missing.push(pm.key); out.parts.push({key:pm.key, days:pm.days, kwh:null}); return; }
-      const cg = calcGen(g, c);
-      const est = cg.daily * pm.days;
-      gen += est;
-      out.parts.push({key:pm.key, days:pm.days, kwh:est, covered:cg.covered});
-      if(cg.covered < pm.lastDay) out.warnings.push(`O print de ${keyLabel(pm.key)} vai até o dia ${cg.covered} e a conta vai até o dia ${pm.lastDay}. Usei a média diária do print (aproximação).`);
-    });
-    if(out.missing.length) return out;
-    out.gen = gen;
-    const tariff = has(b.tariff) ? b.tariff : c.tariff;
-    if(!tariff){ out.warnings.push('Falta a tarifa (R$/kWh) para calcular a economia.'); return out; }
-    if(!has(b.paid) || !has(b.grid) || !has(b.injected)) return out;
-    out.autoconsumo = Math.max(gen - b.injected, 0);
-    out.consumoTotal = b.grid + out.autoconsumo;
-    out.semSolar = out.consumoTotal * tariff;
-    out.eco = out.semSolar - b.paid;
-    if(gen && b.injected > gen * 1.05) out.warnings.push('A conta mostra mais energia injetada do que a geração estimada no período. Confira os números ou se falta algum print.');
-    if(out.eco < 0) out.warnings.push('Economia negativa: confira os números da conta.');
+    const per = periodDays(b.start, b.end);
+    out.per = per;
+    out.tariff = billTariff(b, c);
+    if(has(b.bandeira) && b.grid > 0) out.bandeiraKwh = b.bandeira / b.grid;
+    // Créditos e piso (não dependem da geração)
+    if(has(b.injected) && has(b.kwhComp)) out.credKwh = b.injected - b.kwhComp;
+    if(out.credKwh !== null && b.kwhComp > 0 && has(b.valorComp)) out.credRS = out.credKwh * (b.valorComp / b.kwhComp);
+    const lig = b.ligacao || c.ligacao;
+    const minimo = MINIMO_LIGACAO[lig];
+    if(minimo && has(out.tariff) && has(b.tusd) && has(b.tusdComp) && has(b.kwhComp)){
+      out.piso = minimo * out.tariff + (b.tusd - b.tusdComp) * b.kwhComp + n0(b.cip);
+    }
+    // Energia paga com solar: tira multa/juros, iluminação pública e ajustes avulsos (não são energia)
+    if(has(b.totalDist)) out.energiaPaga = b.totalDist - n0(b.multa) - (b.cipIn !== false ? n0(b.cip) : 0) - n0(b.ajustes);
+    else if(has(b.paid)) out.energiaPaga = b.paid - n0(b.multa) - n0(b.cip) - n0(b.ajustes);
+    if(!per){ if(b.start || b.end) out.warnings.push('Confira as datas: a leitura atual precisa ser depois da anterior.'); }
+    else {
+      if(per.total > 40) out.warnings.push(`Período de ${per.total} dias: confira as datas de leitura.`);
+      let gen = 0, fc = 0, fcOk = true;
+      per.days.forEach(({key, day}) => {
+        const g = genFor(c.id, key);
+        const v = dailyOf(g)[day];
+        if(!has(v)){ (out.missing[key] = out.missing[key] || []).push(day); }
+        else gen += v;
+        const fpd = forecastPerDay(c, key);
+        if(fpd) fc += fpd; else fcOk = false;
+      });
+      out.missingKeys = Object.keys(out.missing);
+      if(fcOk) out.forecast = fc;
+      if(!out.missingKeys.length){
+        out.gen = gen;
+        if(has(out.tariff) && has(b.grid) && has(b.injected) && out.energiaPaga !== null){
+          out.autoconsumo = Math.max(gen - b.injected, 0);
+          out.consumoTotal = b.grid + out.autoconsumo;
+          out.semSolar = out.consumoTotal * (out.tariff + out.bandeiraKwh);
+          out.eco = out.semSolar - out.energiaPaga;
+        }
+        if(has(b.injected) && gen && b.injected > gen * 1.05) out.warnings.push('A conta mostra mais energia injetada do que a geração somada no período. Confira os valores diários e as datas.');
+        if(out.eco !== null && out.eco < 0) out.warnings.push('Economia negativa: confira os números da conta.');
+        if(out.forecast && gen < out.forecast * 0.85) out.alerts.push({lvl:'amber', t:`Geração abaixo do previsto: ${fmtNum(gen)} kWh, ${fmtPct(gen/out.forecast)} do previsto para o período (${fmtNum(out.forecast)} kWh).`});
+      }
+      // leituras de gráfico imprecisas
+      per.months.forEach(pm => { const g = genFor(c.id, pm.key); const tc = g ? topCheck(g) : null; if(tc && tc.bad) out.alerts.push({lvl:'amber', t:`Leitura do gráfico de ${keyLabel(pm.key)} imprecisa — confira os valores diários (soma ${fmtNum(tc.sum,1)} kWh × topo ${fmtNum(tc.top,1)} kWh).`}); });
+    }
+    if(!has(out.tariff)) out.warnings.push('Falta a tarifa (TUSD e TE da conta).');
+    // Alertas internos
+    const debs = b.debitos || [];
+    if(debs.length) out.alerts.unshift({lvl:'red', t:`⚠️ Conta vencida — risco de corte. Resolver antes de pedir avaliação. (${debs.map(d => dateBRFull(d.data) + ': ' + fmtBRL(d.valor)).join(', ')})`});
+    if(n0(b.multa) > 0) out.alerts.push({lvl:'amber', t:`Pagou a conta anterior com atraso (multa/juros de ${fmtBRL(b.multa)}).`});
+    if(has(b.ajustes) && b.ajustes !== 0) out.alerts.push({lvl:'amber', t:`Conta deste mês tem ajuste de ${b.ajustes < 0 ? 'crédito de ' : ''}${fmtBRL(Math.abs(b.ajustes))} — a próxima pode vir diferente.`});
+    if(has(b.saldo)){
+      const prevBills = billsOf(c.id).filter(x => x.id !== b.id && (x.end||'') < (b.end||'')).concat([b]);
+      const acum = prevBills.reduce((s,x) => s + ((has(x.injected) && has(x.kwhComp)) ? x.injected - x.kwhComp : 0), 0);
+      const first = prevBills.slice().sort((a,z) => (a.start||'').localeCompare(z.start||''))[0];
+      const covers = c.activation && first && first.start && (parseDate(first.start) - parseDate(c.activation)) / 86400000 <= 40;
+      if(b.saldo > acum * 1.02 + 1) out.alerts.push({lvl:'amber', t:`Saldo não confere — verificar com a distribuidora. Saldo informado: ${fmtNum(b.saldo)} kWh; créditos somados das contas lançadas: ${fmtNum(acum)} kWh.${covers ? '' : ' (Pode faltar conta antiga lançada no sistema.)'}`});
+    }
+    if(out.semSolar !== null && c.billBefore){
+      const d = (out.semSolar - c.billBefore) / c.billBefore;
+      if(Math.abs(d) > 0.3) out.alerts.push({lvl:'amber', t:`A conta sem solar calculada (${fmtBRL(out.semSolar)}) está ${fmtPct(Math.abs(d))} ${d > 0 ? 'acima' : 'abaixo'} da conta média antes do solar (${fmtBRL(c.billBefore)}). Confira os números ou se o consumo mudou.`});
+    }
     return out;
   }
 
   function ecoAccum(cid, uptoEnd){
     const c = clientById(cid);
-    return billsOf(cid).filter(b => !uptoEnd || (b.end||'') <= uptoEnd).reduce((s,b) => { const k = calcBill(b, c); return s + (k.eco||0); }, 0);
+    return billsOf(cid).filter(b => !uptoEnd || (b.end||'') <= uptoEnd).reduce((s,b) => s + (calcBill(b, c).eco || 0), 0);
   }
   function isFirstBill(b){
     const c = clientById(b.clientId);
     const done = billsOf(b.clientId).filter(x => calcBill(x, c).eco !== null);
     return done.length > 0 && done[0].id === b.id;
   }
-  function firstName(c){ return c.firstName || (c.name||'').split(' ')[0] || ''; }
+  function sazonalidade(c, b){
+    if(!c.forecast || !b.end) return '';
+    const k = b.end.slice(0,7), nk = nextKey(k);
+    const f0 = c.forecast[parseKey(k).m], f1 = c.forecast[parseKey(nk).m];
+    if(!f0 || !f1) return '';
+    const r = f1 / f0;
+    if(r > 1.05) return `Nos próximos meses, com mais sol, a geração tende a aumentar (a previsão para ${MONTHS_FULL[parseKey(nk).m]} é cerca de ${fmtPct(r - 1)} maior).`;
+    if(r < 0.95) return `Nos próximos meses a geração tende a cair um pouco (previsão de ${MONTHS_FULL[parseKey(nk).m]} cerca de ${fmtPct(1 - r)} menor), o que é normal da época do ano. Os créditos acumulados ajudam a compensar.`;
+    return 'A geração deve se manter parecida no próximo mês.';
+  }
 
   function billMessage(b, c){
     const k = calcBill(b, c);
     if(k.eco === null) return '';
-    const nome = firstName(c);
+    const L = local(c), nome = firstName(c);
     const periodo = `${dateBR(b.start)} a ${dateBR(b.end)}`;
-    if(isFirstBill(b)){
-      return `Olá, ${nome}! Chegou sua primeira conta com o sistema solar funcionando ☀️\n\nNo período de ${periodo}, seu sistema gerou cerca de ${fmtNum(k.gen)} kWh. Sem o solar, sua conta teria ficado em torno de ${fmtBRL(k.semSolar)}. Você pagou ${fmtBRL(b.paid)}, uma economia de ${fmtBRL(k.eco)}!\n\nFico muito feliz com o resultado. Se conhecer alguém que também queira reduzir a conta de luz, posso fazer uma análise sem compromisso. E se puder deixar sua avaliação no Google, ajuda muito a gente!`;
-    }
-    const acum = ecoAccum(b.clientId, b.end);
-    return `Olá, ${nome}! Sua conta de luz de ${periodo} chegou: sem o solar ela teria ficado em torno de ${fmtBRL(k.semSolar)}, e você pagou ${fmtBRL(b.paid)}. Economia de ${fmtBRL(k.eco)} no período! Desde a instalação, já são ${fmtBRL(acum)} economizados. Qualquer dúvida, é só chamar.`;
+    const first = isFirstBill(b);
+    const semDebito = !(b.debitos && b.debitos.length);
+    const p = [];
+    p.push(first ? `Olá, ${nome}! Chegou sua primeira conta com o sistema solar funcionando ☀️` : `Olá, ${nome}! Chegou sua conta de luz de ${periodo}.`);
+    p.push(`No período de ${periodo}, o sistema gerou ${fmtNum(k.gen)} kWh. Sem o solar, a energia ${L.da} teria custado cerca de ${fmtBRL(k.semSolar)}; com o solar, a parte de energia da conta ficou em ${fmtBRL(k.energiaPaga)}. Economia de ${fmtBRL(k.eco)}!`);
+    if(k.credKwh !== null && k.credKwh > 0) p.push(`Além disso, sobraram ${fmtNum(k.credKwh)} kWh de créditos${k.credRS !== null ? ' (cerca de ' + fmtBRL(k.credRS) + ')' : ''}, que ficam guardados para abater as próximas contas.`);
+    if(k.piso !== null) p.push(`Importante: mesmo com o solar, a conta tem um valor mínimo de cerca de ${fmtBRL(k.piso)} por mês (taxa mínima da distribuidora, parte do uso da rede e iluminação pública), que não dá para zerar.`);
+    const saz = sazonalidade(c, b); if(saz) p.push(saz);
+    if(!first){ const acum = ecoAccum(b.clientId, b.end); if(acum > k.eco) p.push(`Desde a instalação, já são ${fmtBRL(acum)} economizados.`); }
+    if(first && semDebito) p.push('Fico muito feliz com o resultado! Se conhecer alguém que também queira reduzir a conta de luz, posso fazer uma análise sem compromisso. E se puder deixar sua avaliação no Google, ajuda muito a gente!');
+    p.push('Qualquer dúvida, é só chamar.');
+    return p.join('\n\n');
   }
 
   function genMessage(g, c){
     const k = calcGen(g, c);
-    const nome = firstName(c);
-    const mes = MONTHS_FULL[parseKey(g.month).m];
-    if(k.status === 'verificar') return `Olá, ${nome}! Fiz o acompanhamento de ${mes} do seu sistema solar e a geração ficou abaixo do esperado para o período (${fmtNum(g.kwh)} kWh, ${fmtPct(k.pct)} do previsto). Já estou verificando o sistema e te retorno em breve.`;
-    let s = `Olá, ${nome}! ${k.full ? 'Fechamento de ' + mes : 'Parcial de ' + mes + ' (até o dia ' + k.covered + ')'} do seu sistema solar: ${fmtNum(g.kwh)} kWh gerados`;
+    const nome = firstName(c), mes = MONTHS_FULL[parseKey(g.month).m];
+    if(k.status === 'verificar') return `Olá, ${nome}! Fiz o acompanhamento de ${mes} do seu sistema solar e a geração ficou abaixo do esperado para o período (${fmtNum(k.sum)} kWh, ${fmtPct(k.pct)} do previsto). Já estou verificando o sistema e te retorno em breve.`;
+    let s = `Olá, ${nome}! ${k.full ? 'Fechamento de ' + mes : 'Parcial de ' + mes + ' (até o dia ' + k.covered + ')'} do seu sistema solar: ${fmtNum(k.sum)} kWh gerados`;
     if(k.pct !== null) s += ` (${fmtPct(k.pct)} do previsto)`;
-    s += '.';
-    s += k.status === 'atencao' ? ' Período com um pouco mais de nuvens, mas dentro do normal.' : ' Seu sistema segue funcionando muito bem!';
-    s += ' Qualquer dúvida, é só chamar.';
-    return s;
+    s += k.status === 'atencao' ? '. Período com um pouco mais de nuvens, mas dentro do normal.' : '. Seu sistema segue funcionando muito bem!';
+    return s + ' Qualquer dúvida, é só chamar.';
   }
 
   // ---------- Sync ----------
@@ -1344,7 +1490,7 @@
     let got = 0;
     const done = () => { got++; if(got >= 2) setSyncStatus(null, 'Sincronizado'); };
     unsubs.push(clientsRef.onSnapshot(s => { clients = s.docs.map(d => d.data()); render(); done(); }, onSyncError));
-    unsubs.push(recsRef.onSnapshot(s => { recs = s.docs.map(d => d.data()).filter(r => r.type === 'geracao' || r.type === 'conta'); render(); done(); }, onSyncError));
+    unsubs.push(recsRef.onSnapshot(s => { recs = s.docs.map(d => d.data()).filter(r => r.type === 'conta' || (r.type === 'geracao' && r.daily)); render(); done(); }, onSyncError));
     quotesRef.get().then(s => { soldQuotes = s.docs.map(d => d.data()).filter(q => q.status === 'vendido'); renderImportOptions(); })
       .catch(err => console.warn('Não foi possível ler orçamentos', err));
   }
@@ -1365,13 +1511,7 @@
   // ---------- Pendências ----------
   function buildTodos(){
     const todos = [];
-    const pm = prevMonthKey();
     clients.forEach(c => {
-      const act = c.activation ? c.activation.slice(0,7) : null;
-      const gpm = genFor(c.id, pm);
-      if((!act || act <= pm) && (!gpm || !calcGen(gpm, c).full)){
-        todos.push({level:'amber', client:c, why:`Falta o print de ${keyLabel(pm)} completo`, action:'new-gen', month:pm});
-      }
       gensOf(c.id).forEach(g => {
         const k = calcGen(g, c);
         if(k.status === 'verificar' && !g.checked) todos.push({level:'red', client:c, rec:g, why:`${keyLabel(g.month)}: geração em ${fmtPct(k.pct)} do previsto${k.full?'':' (até o dia '+k.covered+')'}. Abra o app e veja os alertas do inversor.`, action:'mark-checked'});
@@ -1379,15 +1519,12 @@
       billsOf(c.id).forEach(b => {
         const k = calcBill(b, c);
         const per = `${dateBR(b.start)} a ${dateBR(b.end)}`;
-        k.missing.forEach(mk => {
-          todos.push({level:'amber', client:c, rec:b, why:`Conta ${per}: falta o print de ${keyLabel(mk)}${mk===currentKey()?' (pode ser parcial, até hoje)':''}`, action:'edit-bill'});
-        });
+        if(b.debitos && b.debitos.length) todos.push({level:'red', client:c, rec:b, why:`Conta ${per}: débito em aberto — risco de corte.`, action:'edit-bill'});
+        if(k.missingKeys.length) todos.push({level:'amber', client:c, rec:b, why:`Conta ${per}: faltam os dias de ${k.missingKeys.map(keyLabel).join(' e ')}`, action:'edit-bill'});
         if(k.eco !== null && !b.sent) todos.push({level:'blue', client:c, rec:b, why:`Mensagem da conta ${per} não enviada`, action:'show-msg'});
       });
     });
-    // remove duplicados (mesmo cliente + mesmo mês faltando)
-    const seen = new Set();
-    return todos.filter(t => { const key = t.client.id + t.why; if(seen.has(key)) return false; seen.add(key); return true; });
+    return todos;
   }
 
   // ---------- Render ----------
@@ -1397,8 +1534,8 @@
     let eco = 0, gen = 0;
     recs.forEach(r => {
       const c = clientById(r.clientId); if(!c) return;
-      if(r.type === 'conta'){ const k = calcBill(r, c); eco += k.eco || 0; }
-      if(r.type === 'geracao') gen += r.kwh || 0;
+      if(r.type === 'conta') eco += calcBill(r, c).eco || 0;
+      if(r.type === 'geracao') gen += dailySum(r.daily);
     });
     document.getElementById('statEco').textContent = fmtBRL(eco);
     document.getElementById('statGen').textContent = fmtNum(gen) + ' kWh';
@@ -1406,13 +1543,12 @@
 
   function renderTodos(todos){
     const el = document.getElementById('todoList');
-    if(clients.length === 0){ el.innerHTML = '<div class="empty">Cadastre o primeiro cliente para começar.</div>'; return; }
+    if(clients.length === 0){ el.innerHTML = '<div class="empty">Envie a primeira conta de luz para começar.</div>'; return; }
     if(todos.length === 0){ el.innerHTML = '<div class="empty">Tudo em dia ✓</div>'; return; }
     const order = {red:0, amber:1, blue:2};
     el.innerHTML = todos.sort((a,b) => order[a.level]-order[b.level]).map(t => {
       let btn = '';
-      if(t.action === 'new-gen') btn = `<button class="btn btn-primary btn-sm" data-act="new-gen" data-client="${t.client.id}" data-month="${t.month}">Lançar print</button>`;
-      if(t.action === 'edit-bill') btn = `<button class="btn btn-primary btn-sm" data-act="edit-bill" data-id="${t.rec.id}">Enviar print</button>`;
+      if(t.action === 'edit-bill') btn = `<button class="btn btn-primary btn-sm" data-act="edit-bill" data-id="${t.rec.id}">Abrir conta</button>`;
       if(t.action === 'mark-checked') btn = `<button class="btn btn-ghost btn-sm" data-act="mark-checked" data-id="${t.rec.id}">Já verifiquei</button>`;
       if(t.action === 'show-msg') btn = `<button class="btn btn-green btn-sm" data-act="show-msg" data-id="${t.rec.id}">Ver mensagem</button>`;
       return `<div class="todo-item ${t.level==='red'?'red':(t.level==='blue'?'blue':'')}">
@@ -1431,23 +1567,25 @@
       const lk = lastG ? calcGen(lastG, c) : null;
       const acum = ecoAccum(c.id);
       const genRows = gs.slice().reverse().map(g => {
-        const k = calcGen(g, c);
-        return `<tr><td>${keyLabel(g.month)}</td><td class="num">${fmtNum(g.kwh)}</td><td>${k.full ? 'completo' : 'até dia ' + k.covered}</td>
-          <td class="num">${k.forecast ? fmtNum(k.forecast) : '—'}</td><td class="num">${k.pct!==null ? fmtPct(k.pct) : '—'}</td><td>${badge(k.status)}</td>
+        const k = calcGen(g, c); const tc = topCheck(g);
+        return `<tr><td>${keyLabel(g.month)}</td><td class="num">${fmtNum(k.sum)}</td><td>${k.full ? 'completo' : 'até dia ' + k.covered}</td>
+          <td class="num">${k.forecast ? fmtNum(k.forecast) : '—'}</td><td class="num">${k.pct!==null ? fmtPct(k.pct) : '—'}</td><td>${badge(k.status)}${tc && tc.bad ? ' <span class="badge atencao">gráfico?</span>' : ''}</td>
           <td><div class="row-actions"><button class="link-btn" data-act="show-msg" data-id="${g.id}">Mensagem</button><button class="link-btn" data-act="edit-gen" data-id="${g.id}">Editar</button><button class="link-btn danger" data-act="del-rec" data-id="${g.id}">Excluir</button></div></td></tr>`;
       }).join('');
       const billRows = bs.slice().reverse().map(b => {
         const k = calcBill(b, c);
-        return `<tr><td>${dateBR(b.start)} a ${dateBR(b.end)}</td><td class="num">${has(b.paid) ? fmtBRL(b.paid) : '—'}</td>
-          <td class="num">${k.gen!==null ? fmtNum(k.gen) + ' kWh' : (k.missing.length ? 'falta ' + k.missing.map(keyLabel).join(', ') : '—')}</td>
-          <td class="num">${k.eco!==null ? fmtBRL(k.eco) : '—'}</td><td>${b.sent ? '✓' : '—'}</td>
-          <td><div class="row-actions"><button class="link-btn" data-act="show-msg" data-id="${b.id}">Mensagem</button><button class="link-btn" data-act="edit-bill" data-id="${b.id}">Editar</button><button class="link-btn danger" data-act="del-rec" data-id="${b.id}">Excluir</button></div></td></tr>`;
+        const flags = (b.debitos && b.debitos.length ? ' <span class="badge verificar">débito</span>' : '') + (n0(b.multa) > 0 ? ' <span class="badge atencao">multa</span>' : '');
+        return `<tr><td>${dateBR(b.start)} a ${dateBR(b.end)}${flags}</td><td class="num">${has(b.paid) ? fmtBRL(b.paid) : '—'}</td>
+          <td class="num">${k.gen!==null ? fmtNum(k.gen) + ' kWh' : (k.missingKeys.length ? 'faltam dias' : '—')}</td>
+          <td class="num">${k.eco!==null ? fmtBRL(k.eco) : '—'}</td><td class="num">${k.credKwh!==null ? fmtNum(k.credKwh) + ' kWh' : '—'}</td><td>${b.sent ? '✓' : '—'}</td>
+          <td><div class="row-actions"><button class="link-btn" data-act="show-msg" data-id="${b.id}">Mensagem</button><button class="link-btn" data-act="edit-bill" data-id="${b.id}">Abrir</button><button class="link-btn danger" data-act="del-rec" data-id="${b.id}">Excluir</button></div></td></tr>`;
       }).join('');
+      const tipo = {residencia:'Residência', empresa:'Empresa', comercio:'Comércio'}[c.type || 'residencia'];
       return `<div class="card">
         <div class="card-head" data-act="expand" data-id="${c.id}">
           <div class="card-left">
             <div class="name">${escapeHtml(c.name)} ${lk ? badge(lk.status) : ''}</div>
-            <div class="meta">${c.kwp ? fmtNum(c.kwp,2)+' kWp' : '— kWp'} · ${escapeHtml(c.platform||'app não definido')}${c.city ? ' · '+escapeHtml(c.city) : ''} · ${bs.length} ${bs.length===1?'conta':'contas'}</div>
+            <div class="meta">${tipo} · ${c.kwp ? fmtNum(c.kwp,2)+' kWp' : '— kWp'} · ${escapeHtml(c.platform||'app não definido')}${c.city ? ' · '+escapeHtml(c.city) : ''} · ${bs.length} ${bs.length===1?'conta':'contas'}</div>
           </div>
           <div class="card-right"><div class="value">${fmtBRL(acum)}</div><div class="sub">economia acumulada</div></div>
         </div>
@@ -1455,20 +1593,19 @@
           <div class="detail-grid">
             <div><span class="dk">WhatsApp:</span> <span class="dv">${escapeHtml(c.phone||'—')}</span></div>
             <div><span class="dk">Inversor:</span> <span class="dv">${escapeHtml(c.inverter||'—')}</span></div>
-            <div><span class="dk">Usina no app:</span> <span class="dv">${escapeHtml(c.plant||'—')}</span></div>
+            <div><span class="dk">Ligação:</span> <span class="dv">${escapeHtml({monofasico:'Monofásico',bifasico:'Bifásico',trifasico:'Trifásico'}[c.ligacao]||'—')}</span></div>
             <div><span class="dk">Ativação:</span> <span class="dv">${dateBRFull(c.activation)}</span></div>
-            <div><span class="dk">Tarifa:</span> <span class="dv">${c.tariff ? 'R$ '+fmtNum(c.tariff,4)+'/kWh' : '—'}</span></div>
             <div><span class="dk">Conta média antes:</span> <span class="dv">${c.billBefore ? fmtBRL(c.billBefore) : '—'}</span></div>
-            <div><span class="dk">Previsão anual:</span> <span class="dv">${c.forecast ? fmtNum(c.forecast.reduce((s,x)=>s+(x||0),0))+' kWh' : '—'}</span></div>
+            <div><span class="dk">Previsão anual:</span> <span class="dv">${c.forecast ? fmtNum(c.forecast.reduce((s,x)=>s+(x||0),0))+' kWh' : '— (preencha em Editar)'}</span></div>
             ${c.notes ? `<div><span class="dk">Obs.:</span> <span class="dv">${escapeHtml(c.notes)}</span></div>` : ''}
           </div>
           <div class="sub-block-title" style="margin-top:6px;">Contas de luz</div>
-          ${bs.length ? `<div class="table-wrap"><table><thead><tr><th>Período</th><th class="num">Pago</th><th class="num">Geração no período</th><th class="num">Economia</th><th>Enviada</th><th></th></tr></thead><tbody>${billRows}</tbody></table></div>` : '<div class="empty" style="padding:10px 0;">Nenhuma conta lançada.</div>'}
-          <div class="sub-block-title" style="margin-top:14px;">Geração (prints do app)</div>
-          ${gs.length ? `<div class="table-wrap"><table><thead><tr><th>Mês</th><th class="num">kWh</th><th>Cobertura</th><th class="num">Previsto</th><th class="num">%</th><th>Status</th><th></th></tr></thead><tbody>${genRows}</tbody></table></div>` : '<div class="empty" style="padding:10px 0;">Nenhum print lançado.</div>'}
+          ${bs.length ? `<div class="table-wrap"><table><thead><tr><th>Período</th><th class="num">Pago</th><th class="num">Geração</th><th class="num">Economia</th><th class="num">Crédito</th><th>Enviada</th><th></th></tr></thead><tbody>${billRows}</tbody></table></div>` : '<div class="empty" style="padding:10px 0;">Nenhuma conta lançada.</div>'}
+          <div class="sub-block-title" style="margin-top:14px;">Geração por mês</div>
+          ${gs.length ? `<div class="table-wrap"><table><thead><tr><th>Mês</th><th class="num">kWh</th><th>Cobertura</th><th class="num">Previsto</th><th class="num">%</th><th>Status</th><th></th></tr></thead><tbody>${genRows}</tbody></table></div>` : '<div class="empty" style="padding:10px 0;">Nenhuma geração lançada.</div>'}
           <div class="card-actions">
-            <button class="btn btn-primary btn-sm" data-act="new-gen" data-client="${c.id}">+ Geração</button>
-            <button class="btn btn-primary btn-sm" data-act="new-bill" data-client="${c.id}">+ Conta</button>
+            <button class="btn btn-primary btn-sm" data-act="new-bill" data-client="${c.id}">+ Conta de luz</button>
+            <button class="btn btn-ghost btn-sm" data-act="new-gen" data-client="${c.id}">+ Geração do mês</button>
             <button class="btn btn-ghost btn-sm" data-act="edit-client" data-id="${c.id}">Editar cliente</button>
             <button class="btn btn-danger btn-sm" data-act="del-client" data-id="${c.id}">Excluir cliente</button>
           </div>
@@ -1487,31 +1624,73 @@
       : '<option value="">— Nenhum orçamento vendido disponível —</option>';
     if(cur && avail.some(q => q.id === cur)) sel.value = cur;
   }
-
   function fillClientSelects(selectedId){
     const opts = clients.slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'')).map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
-    document.querySelectorAll('#tabPos .client-select').forEach(s => { const v = s.value; s.innerHTML = '<option value="">— Escolha o cliente —</option>' + opts; s.value = selectedId !== undefined && selectedId !== null ? selectedId : (v || ''); });
+    document.querySelectorAll('#tabPos .client-select').forEach(s => { const v = s.value; s.innerHTML = '<option value="">— Escolha o cliente —</option>' + opts; s.value = has(selectedId) ? selectedId : (v || ''); });
   }
-
   function render(){
     const todos = buildTodos();
-    renderStats(todos);
-    renderTodos(todos);
-    renderClients();
-    renderImportOptions();
+    renderStats(todos); renderTodos(todos); renderClients(); renderImportOptions();
   }
-
   function closeForms(except){
     ['clientForm','genForm','billForm'].forEach(id => { if(id !== except) document.getElementById(id).classList.remove('open'); });
     const m = document.getElementById('msgCard'); if(m) m.remove();
   }
   function openCard(id){ closeForms(id); const card = document.getElementById(id); card.classList.add('open'); card.scrollIntoView({behavior:'smooth', block:'start'}); }
 
+  // ---------- Editor de geração diária ----------
+  function editorHtml(scope, key, ed, hl){
+    const dim = daysInMonth(key);
+    const daily = (ed && ed.daily) || {};
+    const tc = topCheck(ed);
+    const sum = dailySum(daily);
+    let inSum = 0, inMissing = 0;
+    if(hl) for(let d = hl.first; d <= hl.last; d++){ if(has(daily[d])) inSum += daily[d]; else inMissing++; }
+    const cells = [];
+    for(let d = 1; d <= dim; d++){
+      const inP = hl && d >= hl.first && d <= hl.last;
+      cells.push(`<div class="day-cell ${inP ? 'in-period' : ''}"><span>${d}</span><input type="number" step="0.01" data-scope="${scope}" data-dk="${key}" data-day="${d}" value="${has(daily[d]) ? daily[d] : ''}"></div>`);
+    }
+    const src = ed ? (ed.source === 'export' ? 'arquivo exportado' : (ed.source === 'print' ? 'print' + (ed.estimated ? ' (valores estimados pela altura das barras)' : '') : (ed.source === 'salvo' ? 'já salvo' : 'digitado'))) : '';
+    return `<div class="day-summary" id="dsum-${scope}-${key}">
+        ${ed && maxDay(daily) ? `<span>Fonte: ${escapeHtml(src)}</span> · <span>Soma do mês: <b>${fmtNum(sum,1)} kWh</b></span>${tc ? ` · <span>Total do topo: <b>${fmtNum(tc.top,1)} kWh</b></span>` : ''}` : '<span>Sem dados ainda.</span>'}
+        ${hl ? ` · <span>Dias ${hl.first} a ${hl.last} (período da conta): <b>${fmtNum(inSum,1)} kWh</b>${inMissing ? ` <span class="miss">— faltam ${inMissing} dia(s)</span>` : ''}</span>` : ''}
+      </div>
+      ${tc && tc.bad ? `<div class="warn-note">⚠ Leitura do gráfico imprecisa — confira os valores diários (diferença de ${fmtPct(tc.diff)} entre a soma das barras e o total do topo).</div>` : ''}
+      <details class="day-details" ${tc && tc.bad ? 'open' : ''}><summary>Ver e corrigir os ${dim} dias</summary><div class="day-grid">${cells.join('')}</div></details>`;
+  }
+  function refreshEditorSummary(scope, key){
+    // re-renderiza só o resumo para não perder o foco do campo
+    const holder = document.querySelector(`[data-editor="${scope}-${key}"]`);
+    if(!holder) return;
+    const hl = holder.dataset.first ? {first: +holder.dataset.first, last: +holder.dataset.last} : null;
+    const tmp = document.createElement('div');
+    tmp.innerHTML = editorHtml(scope, key, editors[scope][key], hl);
+    const old = holder.querySelector('.day-summary'); old.replaceWith(tmp.querySelector('.day-summary'));
+    const oldW = holder.querySelector(':scope > .warn-note'); const newW = tmp.querySelector(':scope > .warn-note');
+    if(oldW) oldW.remove(); if(newW) holder.insertBefore(newW, holder.querySelector('.day-details'));
+  }
+  document.getElementById('tabPos').addEventListener('input', e => {
+    const inp = e.target.closest('input[data-dk]'); if(!inp) return;
+    const scope = inp.dataset.scope, key = inp.dataset.dk, day = inp.dataset.day;
+    const ed = editors[scope][key] = editors[scope][key] || {daily:{}, topTotal:null, source:'digitado', estimated:false};
+    const v = parseFloat(String(inp.value).replace(',', '.'));
+    if(isNaN(v)) delete ed.daily[day]; else ed.daily[day] = v;
+    ed.dirty = true;
+    refreshEditorSummary(scope, key);
+    if(scope === 'bill') updateBillPreview(); else updateGenPreview();
+  });
+  function genRecFromEditor(clientId, key, ed){
+    const clean = {}; Object.keys(ed.daily||{}).forEach(d => { if(has(ed.daily[d])) clean[d] = Math.round(ed.daily[d]*100)/100; });
+    return {type:'geracao', id: genId(clientId, key), clientId, month: key, daily: clean, kwh: Math.round(dailySum(clean)*100)/100,
+      topTotal: has(ed.topTotal) ? ed.topTotal : null, source: ed.source === 'salvo' ? (ed.origSource || 'digitado') : (ed.source || 'digitado'), estimated: !!ed.estimated};
+  }
+  function editorFromRec(g){ return g ? {daily: Object.assign({}, g.daily), topTotal: g.topTotal, source: 'salvo', origSource: g.source, estimated: g.estimated} : null; }
+
   // ---------- Cliente ----------
   const forecastEl = document.getElementById('cForecast');
   forecastEl.innerHTML = MONTHS.map((m,i) => `<div><label>${m}</label><input type="number" step="1" data-fm="${i}" placeholder="kWh"></div>`).join('');
   function forecastInputs(){ return [...forecastEl.querySelectorAll('input')]; }
-
   function openClientForm(c){
     editingClientId = c ? c.id : null;
     document.getElementById('clientFormTitle').textContent = c ? 'Editar cliente' : 'Novo cliente';
@@ -1521,26 +1700,22 @@
     v('cName', c&&c.name); v('cFirst', c&&c.firstName); v('cPhone', c&&c.phone); v('cCity', c&&c.city);
     v('cActivation', c&&c.activation); v('cKwp', c&&c.kwp); v('cInverter', c&&c.inverter); v('cPlatform', (c&&c.platform)||'');
     v('cPlant', c&&c.plant); v('cTariff', c&&c.tariff); v('cBillBefore', c&&c.billBefore); v('cNotes', c&&c.notes);
+    v('cType', (c&&c.type)||'residencia'); v('cLigacao', (c&&c.ligacao)||'');
     document.getElementById('cFirst').dataset.touched = c ? '1' : '';
     forecastInputs().forEach((inp,i) => inp.value = (c && c.forecast && c.forecast[i]) ? c.forecast[i] : '');
     document.getElementById('cImport').value = '';
     renderImportOptions();
     openCard('clientForm');
   }
-
   document.getElementById('cImport').addEventListener('change', e => {
-    const q = soldQuotes.find(x => x.id === e.target.value);
-    if(!q) return;
+    const q = soldQuotes.find(x => x.id === e.target.value); if(!q) return;
     document.getElementById('cName').value = q.client || '';
     document.getElementById('cFirst').value = (q.client||'').split(' ')[0];
     const kwp = (q.panelsQty||0)*(q.panelWatt||0)/1000;
     document.getElementById('cKwp').value = kwp ? kwp.toFixed(2) : '';
     document.getElementById('cInverter').value = [q.invType==='micro'?'Micro':'String', q.invModel].filter(Boolean).join(' · ');
   });
-  document.getElementById('cName').addEventListener('input', () => {
-    const f = document.getElementById('cFirst');
-    if(!f.dataset.touched) f.value = txt('cName').split(' ')[0];
-  });
+  document.getElementById('cName').addEventListener('input', () => { const f = document.getElementById('cFirst'); if(!f.dataset.touched) f.value = txt('cName').split(' ')[0]; });
   document.getElementById('cFirst').addEventListener('input', e => e.target.dataset.touched = '1');
   document.getElementById('cEstimateBtn').addEventListener('click', () => {
     const kwp = num('cKwp');
@@ -1554,301 +1729,273 @@
     if(!name){ toast('Preencha o nome do cliente.'); return; }
     const forecast = forecastInputs().map(i => { const n = parseFloat(i.value); return isNaN(n) ? null : n; });
     const prev = editingClientId ? clientById(editingClientId) : null;
-    const data = {
+    const data = Object.assign({}, prev || {}, {
       id: editingClientId || uid(),
-      name, firstName: txt('cFirst') || name.split(' ')[0],
+      name, firstName: txt('cFirst') || name.split(' ')[0], type: document.getElementById('cType').value,
       phone: txt('cPhone'), city: txt('cCity'), activation: document.getElementById('cActivation').value || null,
       kwp: num('cKwp'), inverter: txt('cInverter'), platform: document.getElementById('cPlatform').value,
-      plant: txt('cPlant'), tariff: num('cTariff'), billBefore: num('cBillBefore'),
-      forecast: forecast.some(x => x !== null) ? forecast : null,
-      notes: txt('cNotes'),
+      plant: txt('cPlant'), ligacao: document.getElementById('cLigacao').value || null, tariff: num('cTariff'), billBefore: num('cBillBefore'),
+      forecast: forecast.some(x => x !== null) ? forecast : null, notes: txt('cNotes'),
       fromQuote: document.getElementById('cImport').value || (prev && prev.fromQuote) || null,
       createdAt: (prev && prev.createdAt) || new Date().toISOString()
-    };
+    });
     if(await write(clientsRef, data, editingClientId ? 'Cliente atualizado' : 'Cliente salvo')){ editingClientId = null; closeForms(); }
   });
 
-  // ---------- Geração ----------
+  // ---------- Geração do mês (avulsa) ----------
   (function initSelects(){
-    const mOpts = MONTHS_FULL.map((m,i) => `<option value="${i}">${m.charAt(0).toUpperCase()+m.slice(1)}</option>`).join('');
-    const y = new Date().getFullYear();
-    let yOpts = ''; for(let yy = y+1; yy >= y-4; yy--) yOpts += `<option value="${yy}">${yy}</option>`;
-    document.getElementById('gMonth').innerHTML = mOpts;
-    document.getElementById('gYear').innerHTML = yOpts;
+    document.getElementById('gMonth').innerHTML = MONTHS_FULL.map((m,i) => `<option value="${i}">${m.charAt(0).toUpperCase()+m.slice(1)}</option>`).join('');
+    const y = new Date().getFullYear(); let o = ''; for(let yy = y+1; yy >= y-4; yy--) o += `<option value="${yy}">${yy}</option>`;
+    document.getElementById('gYear').innerHTML = o;
   })();
   function genKey(){ return monthKey(parseInt(document.getElementById('gYear').value), parseInt(document.getElementById('gMonth').value)); }
   function setGenMonth(key){
     if(!/^\d{4}-\d{2}$/.test(key || '')) return;
-    const {y, m} = parseKey(key);
-    const ySel = document.getElementById('gYear');
+    const {y, m} = parseKey(key); const ySel = document.getElementById('gYear');
     if(![...ySel.options].some(o => o.value == y)) ySel.insertAdjacentHTML('beforeend', `<option value="${y}">${y}</option>`);
     ySel.value = y; document.getElementById('gMonth').value = m;
   }
-  function defaultDaysFor(key, refDate){
-    const d = refDate || new Date();
-    return monthKey(d.getFullYear(), d.getMonth()) === key ? d.getDate() : null;
-  }
-  function readGenForm(){
-    const key = genKey();
-    let days = num('gDays');
-    if(days !== null && days >= daysInMonth(key)) days = null;
-    return {type:'geracao', clientId: document.getElementById('gClient').value, month: key, kwh: num('gKwh'), days: days !== null ? Math.max(1, Math.round(days)) : null};
+  function renderGenEditor(){
+    const key = genKey(), cid = document.getElementById('gClient').value;
+    if(!editors.gen[key] && cid){ const g = genFor(cid, key); if(g) editors.gen[key] = editorFromRec(g); }
+    document.getElementById('gEditor').innerHTML = `<div class="gen-month" data-editor="gen-${key}"><div class="gm">${keyName(key)}</div>${editorHtml('gen', key, editors.gen[key], null)}</div>`;
+    updateGenPreview();
   }
   function updateGenPreview(){
-    const d = readGenForm();
-    const c = clientById(d.clientId);
-    const k = calcGen(d, c);
-    const dim = daysInMonth(d.month);
-    document.getElementById('gDaysHint').textContent = k.full ? `Mês completo (${dim} dias).` : `Parcial: dias 1 a ${k.covered} de ${dim}.`;
+    const key = genKey(), c = clientById(document.getElementById('gClient').value);
+    const ed = editors.gen[key];
+    const k = calcGen(ed ? {month:key, daily: ed.daily} : null, c);
+    document.getElementById('gpSum').textContent = k.sum ? fmtNum(k.sum, 1) + ' kWh' + (k.covered && !k.full ? ` (até dia ${k.covered})` : '') : '—';
     document.getElementById('gpForecast').textContent = k.forecast ? fmtNum(k.forecast) + ' kWh' : '—';
     document.getElementById('gpPct').textContent = k.pct !== null ? fmtPct(k.pct) : '—';
     document.getElementById('gpStatus').innerHTML = k.status ? badge(k.status) : (k.pct !== null ? '<span class="hint">poucos dias</span>' : '—');
-    document.getElementById('gpDaily').textContent = k.daily ? fmtNum(k.daily, 1) + ' kWh' : '—';
     const w = [];
-    if(c && !k.forecast) w.push('Sem previsão para este mês: edite o cliente e preencha a geração prevista.');
+    if(c && !c.forecast) w.push('Este cliente não tem a geração prevista cadastrada. Edite o cliente para ver o % do previsto.');
     if(k.status === 'verificar') w.push('Geração abaixo de 75% do previsto. Abra o app e veja os alertas do inversor.');
-    if(c && !editingGenId && genFor(c.id, d.month)) w.push(`Já existe um print de ${keyLabel(d.month)} para este cliente. Salvar vai substituir pelo novo.`);
     document.getElementById('gpWarn').innerHTML = w.map(x => `<div class="warn-note">⚠ ${escapeHtml(x)}</div>`).join('');
   }
   function openGenForm(opts){
     opts = opts || {};
-    if(clients.length === 0){ toast('Cadastre um cliente primeiro.'); return; }
+    if(clients.length === 0){ toast('Cadastre um cliente primeiro (ou envie uma conta de luz).'); return; }
+    editors.gen = {};
     const g = opts.rec || null;
-    editingGenId = g ? g.id : null;
-    document.getElementById('genFormTitle').textContent = g ? 'Editar geração' : 'Lançar geração (print do app)';
-    aiStatus('geracao', '', 'Print da tela "Mês" do app. Pode ser o mês atual, ainda pela metade.');
-    fillClientSelects(g ? g.clientId : opts.clientId);
-    const key = g ? g.month : (opts.month || prevMonthKey());
-    setGenMonth(key);
-    document.getElementById('gKwh').value = g && has(g.kwh) ? g.kwh : '';
-    document.getElementById('gDays').value = g ? (has(g.days) ? g.days : daysInMonth(key)) : (defaultDaysFor(key) || daysInMonth(key));
+    document.getElementById('genFormTitle').textContent = g ? 'Editar geração do mês' : 'Geração do mês';
+    aiStatus('gen', '', 'O arquivo exportado (botão de download do Solarman) traz os valores exatos de cada dia.');
+    fillClientSelects(g ? g.clientId : (opts.clientId || ''));
+    setGenMonth(g ? g.month : (opts.month || prevMonthKey()));
     openCard('genForm');
-    updateGenPreview();
+    renderGenEditor();
   }
-  ['gClient','gMonth','gYear'].forEach(id => document.getElementById(id).addEventListener('change', () => {
-    if(id !== 'gClient' && !editingGenId){ const k = genKey(); document.getElementById('gDays').value = defaultDaysFor(k) || daysInMonth(k); }
-    updateGenPreview();
-  }));
-  ['gKwh','gDays'].forEach(id => document.getElementById(id).addEventListener('input', updateGenPreview));
-  document.getElementById('gCancel').addEventListener('click', () => { editingGenId = null; closeForms(); });
+  ['gClient','gMonth','gYear'].forEach(id => document.getElementById(id).addEventListener('change', renderGenEditor));
+  document.getElementById('gCancel').addEventListener('click', () => { editors.gen = {}; closeForms(); });
   document.getElementById('gSave').addEventListener('click', async () => {
-    const d = readGenForm();
-    if(!d.clientId){ toast('Escolha o cliente.'); return; }
-    if(d.kwh === null){ toast('Preencha a geração.'); return; }
-    const newId = genId(d.clientId, d.month);
-    const prev = editingGenId ? recs.find(r => r.id === editingGenId) : genFor(d.clientId, d.month);
-    const data = Object.assign(d, {id: newId, checked: false, sent: false, updatedAt: new Date().toISOString()});
-    if(await write(recsRef, data, 'Geração salva')){
-      if(editingGenId && editingGenId !== newId) await remove(recsRef, editingGenId);
-      editingGenId = null; closeForms();
-    }
+    const cid = document.getElementById('gClient').value, key = genKey(), ed = editors.gen[key];
+    if(!cid){ toast('Escolha o cliente.'); return; }
+    if(!ed || !maxDay(ed.daily)){ toast('Envie o arquivo ou o print, ou preencha os dias.'); return; }
+    const data = Object.assign(genRecFromEditor(cid, key, ed), {checked:false, sent:false, updatedAt: new Date().toISOString()});
+    if(await write(recsRef, data, 'Geração salva')){ editors.gen = {}; closeForms(); }
   });
 
-  // ---------- Conta (passo a passo: conta → prints de geração → resultado) ----------
-  let draftGens = {};          // mês → {kwh, days}: prints lidos nesta conta, salvos junto com ela
-  let billPresetClient = false; // a conta foi aberta a partir de um cliente específico
-
+  // ---------- Conta (passo a passo) ----------
+  const BILL_FIELDS = {bStart:'start', bEnd:'end', bLigacao:'ligacao', bGrid:'grid', bInjected:'injected', bKwhComp:'kwhComp', bTusd:'tusd', bTe:'te', bTusdComp:'tusdComp',
+    bTariff:'tariff', bBandeira:'bandeira', bPaid:'paid', bTotalDist:'totalDist', bValorComp:'valorComp', bMulta:'multa', bCip:'cip', bAjustes:'ajustes', bSaldo:'saldo', bNotes:'notes'};
+  const TEXT_FIELDS = ['bStart','bEnd','bLigacao','bNotes'];
   function readBillForm(){
-    return {type:'conta', clientId: document.getElementById('bClient').value,
-      start: document.getElementById('bStart').value || null, end: document.getElementById('bEnd').value || null,
-      paid: num('bPaid'), grid: num('bGrid'), injected: num('bInjected'), tariff: num('bTariff'), notes: txt('bNotes')};
+    const d = {type:'conta', clientId: document.getElementById('bClient').value};
+    Object.entries(BILL_FIELDS).forEach(([id, f]) => { d[f] = TEXT_FIELDS.includes(id) ? (document.getElementById(id).value.trim() || null) : num(id); });
+    d.cipIn = document.getElementById('bCipIn').checked;
+    d.debitos = parseDebitos(document.getElementById('bDebitos').value);
+    if(has(d.tusd) && has(d.te)) d.tariff = Math.round((d.tusd + d.te) * 1e6) / 1e6;
+    return d;
   }
-  function draftRecs(clientId){
-    return Object.entries(draftGens).filter(([k,v]) => has(v.kwh)).map(([k,v]) => ({type:'geracao', id: genId(clientId, k), clientId, month: k, kwh: v.kwh, days: v.days}));
+  function syncTariffField(){
+    const t = num('bTusd'), e = num('bTe'), el = document.getElementById('bTariff');
+    if(has(t) && has(e)){ el.value = Math.round((t + e) * 1e6) / 1e6; el.readOnly = true; document.getElementById('bTariffHint').textContent = 'Soma TUSD + TE (lida da conta).'; }
+    else { el.readOnly = false; document.getElementById('bTariffHint').textContent = 'Sem TUSD/TE: usa este valor ou o do cadastro.'; }
+  }
+  function draftGenRecs(clientId){
+    return Object.entries(editors.bill).filter(([k, ed]) => ed && maxDay(ed.daily)).map(([k, ed]) => genRecFromEditor(clientId, k, ed));
   }
   function withDrafts(clientId, extra, fn){
     const saved = recs;
-    const ds = draftRecs(clientId).concat(extra || []);
+    const ds = draftGenRecs(clientId).concat(extra || []);
     const ids = new Set(ds.map(x => x.id));
     recs = recs.filter(r => !ids.has(r.id)).concat(ds);
     try{ return fn(); } finally { recs = saved; }
-  }
-  function genValuesFor(clientId, key){
-    if(draftGens[key]) return draftGens[key];
-    const g = clientId ? genFor(clientId, key) : null;
-    return g ? {kwh: g.kwh, days: g.days, saved: true} : null;
   }
 
   function renderGenList(){
     const el = document.getElementById('bGenList');
     const d = readBillForm();
-    const per = periodByMonth(d.start, d.end);
-    if(!per){ el.innerHTML = '<div class="hint">Envie a conta primeiro: o sistema vai dizer quais prints precisa.</div>'; return; }
+    const per = periodDays(d.start, d.end);
+    if(!per){ el.innerHTML = '<div class="hint">Envie a conta primeiro: o sistema vai dizer de quais meses precisa.</div>'; return; }
     el.innerHTML = per.months.map(pm => {
-      const v = genValuesFor(d.clientId, pm.key);
-      const dim = daysInMonth(pm.key);
+      if(!editors.bill[pm.key] && d.clientId){ const g = genFor(d.clientId, pm.key); if(g) editors.bill[pm.key] = editorFromRec(g); }
+      const ed = editors.bill[pm.key];
+      let missing = 0; for(let x = pm.first; x <= pm.last; x++) if(!ed || !has(ed.daily[x])) missing++;
+      const st = missing === 0 ? `<div class="gs ok" id="gst-${pm.key}">✓ Todos os ${pm.days} dias do período preenchidos</div>`
+        : `<div class="gs miss" id="gst-${pm.key}">Faltam ${missing} de ${pm.days} dias${pm.key === currentKey() ? ' (pode exportar/printar até hoje)' : ''}</div>`;
       const {m} = parseKey(pm.key);
-      const nome = MONTHS_FULL[m].charAt(0).toUpperCase() + MONTHS_FULL[m].slice(1) + '/' + parseKey(pm.key).y;
-      let st;
-      if(v && has(v.kwh)){
-        const cov = has(v.days) ? v.days : dim;
-        st = `<div class="gs ok" id="gst-${pm.key}">✓ ${fmtNum(v.kwh)} kWh ${cov >= dim ? '(mês completo)' : '(até o dia ' + cov + ')'}${v.saved && !draftGens[pm.key] ? ' · já estava salvo' : ''}</div>`;
-        if(cov < pm.lastDay) st += `<div class="gs miss">O print vai até o dia ${cov} e a conta até o dia ${pm.lastDay}: uso a média diária.</div>`;
-      } else {
-        st = `<div class="gs miss" id="gst-${pm.key}">Falta o print deste mês${pm.key === currentKey() ? ' (pode ser parcial, até hoje)' : ''}</div>`;
-      }
-      return `<div class="gen-row">
-        <div><div class="gm">${nome}</div><div class="gs">${pm.days} dias da conta (dia ${pm.firstDay} a ${pm.lastDay})</div>${st}</div>
-        <div><label>kWh no print</label><input type="number" step="0.01" data-gm="${pm.key}" data-f="kwh" value="${v && has(v.kwh) ? v.kwh : ''}"></div>
-        <div><label>Até o dia</label><input type="number" min="1" max="${dim}" data-gm="${pm.key}" data-f="days" value="${v ? (has(v.days) ? v.days : dim) : ''}"></div>
-        <div><button class="btn btn-primary btn-sm" type="button" data-act="ai-pick" data-kind="geracao-bill" data-month="${pm.key}">📷 Print de ${MONTHS[m]}</button></div>
+      return `<div class="gen-month" data-editor="bill-${pm.key}" data-first="${pm.first}" data-last="${pm.last}">
+        <div class="gen-month-head">
+          <div><div class="gm">${keyName(pm.key)}</div><div class="gs">Dias ${pm.first} a ${pm.last} entram na conta (${pm.days} dias)</div>${st}</div>
+          <div class="gen-btns">
+            <button class="btn btn-primary btn-sm" type="button" data-act="ai-pick" data-kind="export" data-scope="bill" data-month="${pm.key}">📄 Arquivo de ${MONTHS[m]}</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-act="ai-pick" data-kind="print" data-scope="bill" data-month="${pm.key}">📷 Print de ${MONTHS[m]}</button>
+          </div>
+        </div>
+        ${editorHtml('bill', pm.key, ed, {first: pm.first, last: pm.last})}
       </div>`;
     }).join('');
   }
-  document.getElementById('bGenList').addEventListener('input', e => {
-    const inp = e.target.closest('input[data-gm]'); if(!inp) return;
-    const key = inp.dataset.gm;
-    const row = inp.closest('.gen-row');
-    const kwh = parseFloat(row.querySelector('[data-f=kwh]').value);
-    let days = parseInt(row.querySelector('[data-f=days]').value);
-    if(isNaN(days) || days >= daysInMonth(key)) days = null;
-    draftGens[key] = {kwh: isNaN(kwh) ? null : kwh, days};
-    updateBillPreview();
-  });
 
   function updateBillPreview(){
     const d = readBillForm();
     d.id = editingBillId || '__draft__';
     const c = clientById(d.clientId);
-    const per = periodByMonth(d.start, d.end);
-    document.getElementById('bReadSummary').innerHTML = (per || has(d.paid)) ?
-      [per ? `Período: <b>${dateBR(d.start)} a ${dateBR(d.end)}</b> (${per.total} dias)` : null,
-       has(d.paid) ? `Pago: <b>${fmtBRL(d.paid)}</b>` : null,
-       has(d.grid) ? `Comprada da rede: <b>${fmtNum(d.grid)} kWh</b>` : null,
-       has(d.injected) ? `Injetada: <b>${fmtNum(d.injected)} kWh</b>` : null,
-       has(d.tariff) ? `Tarifa: <b>R$ ${fmtNum(d.tariff,4)}</b>` : null].filter(Boolean).join(' · ') : '';
-    const k = c ? withDrafts(c.id, [d], () => calcBill(d, c)) : calcBill(d, c);
-    document.getElementById('bpPeriod').textContent = k.days ? `${k.days} dias` : '—';
-    document.getElementById('bpGen').textContent = k.gen !== null ? fmtNum(k.gen) + ' kWh' : (k.missing.length ? 'falta print' : '—');
-    document.getElementById('bpNoSolar').textContent = k.semSolar !== null ? fmtBRL(k.semSolar) : '—';
-    document.getElementById('bpEco').textContent = k.eco !== null ? fmtBRL(k.eco) : '—';
+    const per = periodDays(d.start, d.end);
+    const L = local(c);
+    document.getElementById('bReadSummary').innerHTML = [
+      per ? `Período: <b>${dateBR(d.start)} a ${dateBR(d.end)}</b> (${per.total} dias)` : null,
+      has(d.paid) ? `Total a pagar: <b>${fmtBRL(d.paid)}</b>` : null,
+      has(d.grid) ? `Comprada: <b>${fmtNum(d.grid)} kWh</b>` : null,
+      has(d.injected) ? `Injetada: <b>${fmtNum(d.injected)} kWh</b>` : null,
+      has(d.kwhComp) ? `Compensada: <b>${fmtNum(d.kwhComp)} kWh</b>` : null,
+      has(d.tariff) ? `Tarifa cheia: <b>R$ ${fmtNum(d.tariff,6)}</b>` : null,
+      d.debitos.length ? `<span style="color:var(--red)">Débitos em aberto: <b>${d.debitos.length}</b></span>` : null
+    ].filter(Boolean).join(' · ');
+    const k = c ? withDrafts(c.id, [d], () => calcBill(d, c)) : calcBill(d, {id:'__none__'});
+    const set = (id, v) => document.getElementById(id).textContent = v;
+    set('bpGen', k.gen !== null ? fmtNum(k.gen, 1) + ' kWh' : (k.missingKeys.length ? 'faltam dias' : '—'));
+    set('bpNoSolar', k.semSolar !== null ? fmtBRL(k.semSolar) : '—');
+    set('bpPaidEnergy', k.energiaPaga !== null ? fmtBRL(k.energiaPaga) : '—');
+    set('bpEco', k.eco !== null ? fmtBRL(k.eco) : '—');
+    set('bpCredKwh', k.credKwh !== null ? fmtNum(k.credKwh) + ' kWh' : '—');
+    set('bpCredRS', k.credRS !== null ? fmtBRL(k.credRS) : '—');
+    set('bpPiso', k.piso !== null ? fmtBRL(k.piso) : '—');
+    set('bpForecast', k.forecast ? fmtNum(k.forecast) + ' kWh' : '—');
     const bd = document.getElementById('bpBreakdown');
-    if(k.parts.length && k.gen !== null){
-      bd.style.display = 'grid';
-      bd.innerHTML = k.parts.map(p => `<div>${keyLabel(p.key)}: ${p.days} dias → ${fmtNum(p.kwh)} kWh</div>`).join('') +
-        (k.autoconsumo !== null ? `<div>Autoconsumo (gerado − injetado): ${fmtNum(k.autoconsumo)} kWh</div><div>Consumo total da casa: ${fmtNum(k.consumoTotal)} kWh</div>` : '');
-    } else { bd.style.display = 'none'; bd.innerHTML = ''; }
+    const lines = [];
+    if(k.autoconsumo !== null){
+      lines.push(`Autoconsumo (gerado − injetado): ${fmtNum(k.autoconsumo)} kWh`);
+      lines.push(`${L.consumo}: ${fmtNum(k.consumoTotal)} kWh`);
+      lines.push(`Tarifa usada: R$ ${fmtNum(k.tariff,6)} + bandeira R$ ${fmtNum(k.bandeiraKwh,6)}/kWh`);
+      lines.push(`Energia paga = Total Distribuidora − multa/juros − CIP − ajustes`);
+    }
+    if(k.piso !== null) lines.push(`Piso = mínimo ${MINIMO_LIGACAO[d.ligacao || (c && c.ligacao)]} kWh × tarifa + (TUSD − TUSD compensada) × kWh compensados + CIP`);
+    bd.style.display = lines.length ? 'grid' : 'none';
+    bd.innerHTML = lines.map(x => `<div>${escapeHtml(x)}</div>`).join('');
     const w = [];
     if(!c && per) w.push('Escolha o cliente (ou crie pelo botão ao lado).');
-    if(k.missing.length) w.push(`Falta o print de ${k.missing.map(keyLabel).join(' e ')}. Pode salvar agora: a economia aparece quando o print entrar.`);
-    w.push(...k.warnings.filter(x => !x.startsWith('O print de')));
+    if(k.missingKeys.length) w.push(`Faltam dias de ${k.missingKeys.map(keyLabel).join(' e ')}. Pode salvar agora: a economia aparece quando a geração desses dias entrar.`);
+    w.push(...k.warnings);
     document.getElementById('bpWarn').innerHTML = w.map(x => `<div class="warn-note">⚠ ${escapeHtml(x)}</div>`).join('');
+    const ab = document.getElementById('bpAlerts');
+    if(k.alerts.length){ ab.style.display = 'block'; ab.innerHTML = '<div class="alert-title">Alertas (só para você — não vão na mensagem)</div>' + k.alerts.map(a => `<div class="alert-item ${a.lvl}">${escapeHtml(a.t)}</div>`).join(''); }
+    else { ab.style.display = 'none'; ab.innerHTML = ''; }
     const msgEl = document.getElementById('bpMsg');
-    if(c && k.eco !== null){
-      msgEl.textContent = withDrafts(c.id, [d], () => billMessage(d, c));
-      msgEl.style.display = 'block';
-    } else msgEl.style.display = 'none';
+    if(c && k.eco !== null){ msgEl.textContent = withDrafts(c.id, [d], () => billMessage(d, c)); msgEl.style.display = 'block'; }
+    else msgEl.style.display = 'none';
   }
 
+  function fillBillForm(b){
+    Object.entries(BILL_FIELDS).forEach(([id, f]) => { document.getElementById(id).value = b && has(b[f]) ? b[f] : ''; });
+    document.getElementById('bCipIn').checked = !(b && b.cipIn === false);
+    document.getElementById('bDebitos').value = b ? debitosText(b.debitos) : '';
+    syncTariffField();
+  }
   function openBillForm(opts){
     opts = opts || {};
     const b = opts.rec || null;
     editingBillId = b ? b.id : null;
-    draftGens = {};
+    editors.bill = {};
     billPresetClient = !!(b || opts.clientId);
     document.getElementById('billFormTitle').textContent = b ? 'Conta de luz' : 'Nova conta de luz';
-    aiStatus('conta', '', 'Foto ou PDF. O sistema lê o cliente, o período de cobrança, o valor e os kWh.');
+    aiStatus('conta', '', 'Foto ou PDF. O sistema lê cliente, período, tarifas, créditos, bandeira, multas, débitos e mais.');
     document.getElementById('bClientMatch').innerHTML = '';
     fillClientSelects(b ? b.clientId : (opts.clientId || ''));
-    const v = (id, val) => document.getElementById(id).value = has(val) ? val : '';
-    v('bStart', b&&b.start); v('bEnd', b&&b.end); v('bPaid', b&&b.paid); v('bGrid', b&&b.grid); v('bInjected', b&&b.injected); v('bNotes', b&&b.notes);
-    const c = clientById(document.getElementById('bClient').value);
-    v('bTariff', b && has(b.tariff) ? b.tariff : (c && c.tariff));
+    fillBillForm(b);
+    if(!b){ const c = clientById(document.getElementById('bClient').value); if(c && c.ligacao) document.getElementById('bLigacao').value = c.ligacao; }
     document.getElementById('bDetails').open = false;
     openCard('billForm');
     renderGenList();
     updateBillPreview();
-    if(b && calcBill(b, c).missing.length) document.getElementById('bStep2').scrollIntoView({behavior:'smooth', block:'start'});
+    if(b && calcBill(b, clientById(b.clientId)).missingKeys.length) setTimeout(() => document.getElementById('bStep2').scrollIntoView({behavior:'smooth', block:'start'}), 300);
   }
   document.getElementById('bClient').addEventListener('change', () => {
     const c = clientById(document.getElementById('bClient').value);
-    if(c && c.tariff && !document.getElementById('bTariff').value) document.getElementById('bTariff').value = c.tariff;
-    renderGenList(); updateBillPreview();
+    if(c && c.ligacao && !document.getElementById('bLigacao').value) document.getElementById('bLigacao').value = c.ligacao;
+    editors.bill = {}; renderGenList(); updateBillPreview();
   });
-  ['bPaid','bGrid','bInjected','bTariff'].forEach(id => document.getElementById(id).addEventListener('input', updateBillPreview));
-  ['bStart','bEnd'].forEach(id => document.getElementById(id).addEventListener('change', () => { renderGenList(); updateBillPreview(); }));
-  document.getElementById('bCancel').addEventListener('click', () => { editingBillId = null; draftGens = {}; closeForms(); });
+  Object.keys(BILL_FIELDS).concat(['bCipIn','bDebitos']).forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', () => { if(id === 'bTusd' || id === 'bTe') syncTariffField(); updateBillPreview(); });
+    el.addEventListener('change', () => { if(id === 'bStart' || id === 'bEnd'){ renderGenList(); } updateBillPreview(); });
+  });
+  document.getElementById('bCancel').addEventListener('click', () => { editingBillId = null; editors.bill = {}; closeForms(); });
   document.getElementById('bSave').addEventListener('click', async () => {
     const d = readBillForm();
     if(!d.clientId){ toast('Escolha o cliente.'); return; }
-    if(!d.start || !d.end || !periodByMonth(d.start, d.end)){ toast('Faltam as datas de leitura. Envie a foto da conta ou preencha em "Conferir números".'); document.getElementById('bDetails').open = true; return; }
+    if(!periodDays(d.start, d.end)){ toast('Faltam as datas de leitura. Envie a foto da conta ou preencha em "Conferir".'); document.getElementById('bDetails').open = true; return; }
     const prev = editingBillId ? recs.find(r => r.id === editingBillId) : null;
     const data = Object.assign(d, {id: editingBillId || uid(), sent: prev ? !!prev.sent : false, createdAt: (prev && prev.createdAt) || new Date().toISOString()});
     const c = clientById(d.clientId);
-    if(c && !c.tariff && d.tariff) await write(clientsRef, Object.assign({}, c, {tariff: d.tariff}));
-    for(const g of draftRecs(d.clientId)){
-      await write(recsRef, Object.assign(g, {checked:false, sent:false, updatedAt: new Date().toISOString()}));
+    if(c && d.ligacao && c.ligacao !== d.ligacao) await write(clientsRef, Object.assign({}, c, {ligacao: d.ligacao}));
+    for(const [k, ed] of Object.entries(editors.bill)){
+      if(ed && ed.source !== 'salvo' && maxDay(ed.daily)) await write(recsRef, Object.assign(genRecFromEditor(d.clientId, k, ed), {checked:false, sent:false, updatedAt: new Date().toISOString()}));
+      else if(ed && ed.source === 'salvo' && ed.dirty) await write(recsRef, Object.assign(genRecFromEditor(d.clientId, k, ed), {updatedAt: new Date().toISOString()}));
     }
     if(await write(recsRef, data, editingBillId ? 'Conta atualizada' : 'Conta salva')){
-      editingBillId = null; draftGens = {}; closeForms();
+      editingBillId = null; editors.bill = {}; closeForms();
       setTimeout(() => { const r = recs.find(x => x.id === data.id) || data; if(calcBill(r, clientById(r.clientId)).eco !== null) openMsgCard(r); }, 400);
     }
   });
 
-  // Identifica o cliente pelo nome do titular da conta
-  function normName(s){ return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(t => t.length > 2 && !['dos','das','ltda','eireli','me'].includes(t)); }
+  // Identifica o cliente pelo nome do titular
+  function normName(s){ return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(/\s+/).filter(t => t.length > 2 && !['dos','das','ltda','eireli'].includes(t)); }
   function matchClient(titular){
-    const tt = new Set(normName(titular));
-    let best = null, bestScore = 0;
-    clients.forEach(c => {
-      const ct = normName(c.name);
-      const score = ct.filter(t => tt.has(t)).length;
-      const need = Math.min(2, ct.length);
-      if(score >= need && score > bestScore){ best = c; bestScore = score; }
-    });
+    const tt = new Set(normName(titular)); let best = null, bestScore = 0;
+    clients.forEach(c => { const ct = normName(c.name); const score = ct.filter(t => tt.has(t)).length; if(score >= Math.min(2, ct.length) && score > bestScore){ best = c; bestScore = score; } });
     return best;
   }
   function titleCase(s){ return (s||'').toLowerCase().replace(/(^|\s)(\S)/g, (m, a, b) => a + b.toUpperCase()).replace(/\s(De|Da|Do|Dos|Das|E)\s/g, m => m.toLowerCase()); }
   function handleTitular(titular, cidade){
     const box = document.getElementById('bClientMatch');
     if(!titular){ box.innerHTML = ''; return; }
-    const sel = document.getElementById('bClient');
-    const current = clientById(sel.value);
-    const m = matchClient(titular);
+    const sel = document.getElementById('bClient'), current = clientById(sel.value), m = matchClient(titular);
     if(billPresetClient && current){
-      box.innerHTML = (m && m.id === current.id) ? `<div class="hint" style="color:var(--green);margin-top:24px;">✓ Titular confere: ${escapeHtml(titleCase(titular))}</div>`
+      box.innerHTML = (m && m.id === current.id) ? `<div class="hint ok-text">✓ Titular confere: ${escapeHtml(titleCase(titular))}</div>`
         : `<div class="warn-note" style="margin-top:22px;">⚠ Titular da conta: ${escapeHtml(titleCase(titular))}. Confira se é o cliente certo.</div>`;
       return;
     }
-    if(m){
-      sel.value = m.id;
-      if(m.tariff && !document.getElementById('bTariff').value) document.getElementById('bTariff').value = m.tariff;
-      box.innerHTML = `<div class="hint" style="color:var(--green);margin-top:24px;">✓ Cliente encontrado pelo titular: ${escapeHtml(titleCase(titular))}</div>`;
-    } else {
-      sel.value = '';
-      box.innerHTML = `<label>Titular na conta: ${escapeHtml(titleCase(titular))}</label><button class="btn btn-ghost btn-sm" type="button" data-act="quick-client" data-name="${escapeHtml(titleCase(titular))}" data-city="${escapeHtml(cidade || '')}">+ Criar este cliente</button>`;
-    }
+    if(m){ sel.value = m.id; box.innerHTML = `<div class="hint ok-text">✓ Cliente encontrado pelo titular: ${escapeHtml(titleCase(titular))}</div>`; }
+    else { sel.value = ''; box.innerHTML = `<label>Titular na conta: ${escapeHtml(titleCase(titular))}</label><button class="btn btn-ghost btn-sm" type="button" data-act="quick-client" data-name="${escapeHtml(titleCase(titular))}" data-city="${escapeHtml(cidade || '')}">+ Criar este cliente</button>`; }
   }
   async function quickClient(name, city){
-    const data = {id: uid(), name, firstName: name.split(' ')[0], phone:'', city: city || '', activation: null, kwp: null, inverter:'', platform:'', plant:'',
-      tariff: num('bTariff'), billBefore: null, forecast: null, notes:'Criado a partir da conta de luz. Complete o cadastro.', fromQuote: null, createdAt: new Date().toISOString()};
+    const data = {id: uid(), name, firstName: name.split(' ')[0], type:'residencia', phone:'', city: city || '', activation: null, kwp: null, inverter:'', platform:'', plant:'',
+      ligacao: document.getElementById('bLigacao').value || null, tariff: null, billBefore: null, forecast: null, notes:'Criado a partir da conta de luz. Complete o cadastro (tipo, WhatsApp, kWp, previsão, conta média antes).', fromQuote: null, createdAt: new Date().toISOString()};
     if(await write(clientsRef, data, 'Cliente criado')){
       if(!clientById(data.id)) clients.push(data);
       fillClientSelects(data.id);
-      document.getElementById('bClientMatch').innerHTML = `<div class="hint" style="color:var(--green);margin-top:24px;">✓ Cliente criado. Depois complete WhatsApp, kWp e previsão em "Editar cliente".</div>`;
+      document.getElementById('bClientMatch').innerHTML = `<div class="hint ok-text">✓ Cliente criado. Depois complete o cadastro em "Editar cliente".</div>`;
       renderGenList(); updateBillPreview();
     }
   }
 
   // ---------- Mensagem ----------
-  function messageFor(r){
-    const c = clientById(r.clientId); if(!c) return '';
-    return r.type === 'conta' ? billMessage(r, c) : genMessage(r, c);
-  }
+  function messageFor(r){ const c = clientById(r.clientId); if(!c) return ''; return r.type === 'conta' ? billMessage(r, c) : genMessage(r, c); }
   function openMsgCard(r){
-    const c = clientById(r.clientId);
-    if(!c) return;
+    const c = clientById(r.clientId); if(!c) return;
     const msg = messageFor(r);
     if(!msg){ toast('Ainda não dá para gerar a mensagem: falta algum dado.'); return; }
     closeForms();
-    const box = document.createElement('div');
-    box.id = 'msgCard'; box.className = 'form-card open';
+    const box = document.createElement('div'); box.id = 'msgCard'; box.className = 'form-card open';
     document.getElementById('billForm').insertAdjacentElement('afterend', box);
     const link = waLink(c.phone, msg);
     const title = r.type === 'conta' ? `conta ${dateBR(r.start)} a ${dateBR(r.end)}` : keyLabel(r.month);
-    const low = r.type === 'geracao' && calcGen(r, c).status === 'verificar';
+    const alerts = r.type === 'conta' ? calcBill(r, c).alerts : [];
     box.innerHTML = `<div class="form-card-title">Mensagem para ${escapeHtml(firstName(c) || c.name)} · ${title}</div>
-      ${low ? '<div class="warn-note" style="margin-bottom:10px;">⚠ Geração baixa. Verifique o app antes de enviar.</div>' : ''}
+      ${alerts.length ? `<div class="alert-box"><div class="alert-title">Alertas (só para você)</div>${alerts.map(a => `<div class="alert-item ${a.lvl}">${escapeHtml(a.t)}</div>`).join('')}</div>` : ''}
       <div class="msg-box" style="margin-top:0;">${escapeHtml(msg)}</div>
       <div class="form-actions" style="margin-top:14px;">
         <button class="btn btn-ghost" data-act="close-msg">Fechar</button>
@@ -1859,24 +2006,19 @@
       ${!c.phone ? '<div class="hint" style="text-align:right;">Cadastre o WhatsApp do cliente para abrir direto.</div>' : ''}`;
     box.scrollIntoView({behavior:'smooth', block:'start'});
   }
-  async function setFlag(id, field, value){
-    const r = recs.find(x => x.id === id); if(!r) return;
-    await write(recsRef, Object.assign({}, r, {[field]: value}));
-  }
+  async function setFlag(id, field, value){ const r = recs.find(x => x.id === id); if(!r) return; await write(recsRef, Object.assign({}, r, {[field]: value})); }
 
   // ---------- Leitura com IA ----------
   const aiInput = document.createElement('input');
-  aiInput.type = 'file'; aiInput.accept = 'image/*,application/pdf'; aiInput.style.display = 'none';
-  document.body.appendChild(aiInput);
-  let aiKind = null, aiMonth = null;
-
-  function aiStatus(kind, cls, text){
-    const el = document.getElementById('aiStatus-' + kind);
-    if(!el) return;
-    el.className = 'ai-status' + (cls ? ' ' + cls : '');
-    el.textContent = text;
+  aiInput.type = 'file'; aiInput.style.display = 'none'; document.body.appendChild(aiInput);
+  let aiCtx = null;
+  function aiStatus(kind, cls, text){ const el = document.getElementById('aiStatus-' + kind); if(!el) return; el.className = 'ai-status' + (cls ? ' ' + cls : ''); el.textContent = text; }
+  function ctxStatus(ctx, cls, text){
+    if(ctx.kind === 'conta') return aiStatus('conta', cls, text);
+    if(ctx.scope === 'gen') return aiStatus('gen', cls, text);
+    const el = document.getElementById('gst-' + ctx.month); if(el){ el.className = 'gs ' + (cls === 'busy' ? 'miss' : (cls === 'err' ? 'err' : 'ok')); el.textContent = text; }
   }
-  function fileToPayload(file){
+  function fileToImagePayload(file){
     return new Promise((resolve, reject) => {
       if(file.type === 'application/pdf'){
         if(file.size > 3 * 1024 * 1024){ reject(new Error('PDF muito grande (máx. 3 MB). Tire um print da conta.')); return; }
@@ -1885,131 +2027,136 @@
         fr.onerror = () => reject(new Error('Não foi possível ler o arquivo.'));
         fr.readAsDataURL(file); return;
       }
-      const url = URL.createObjectURL(file);
-      const img = new Image();
+      const url = URL.createObjectURL(file), img = new Image();
       img.onload = () => {
-        const max = 1800, scale = Math.min(1, max / Math.max(img.width, img.height));
-        const cv = document.createElement('canvas');
-        cv.width = Math.round(img.width * scale); cv.height = Math.round(img.height * scale);
-        const ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
-        ctx.drawImage(img, 0, 0, cv.width, cv.height);
+        const max = 2000, scale = Math.min(1, max / Math.max(img.width, img.height));
+        const cv = document.createElement('canvas'); cv.width = Math.round(img.width * scale); cv.height = Math.round(img.height * scale);
+        const ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.drawImage(img, 0, 0, cv.width, cv.height);
         URL.revokeObjectURL(url);
-        resolve({mediaType: 'image/jpeg', data: cv.toDataURL('image/jpeg', 0.85).split(',')[1]});
+        resolve({mediaType: 'image/jpeg', data: cv.toDataURL('image/jpeg', 0.9).split(',')[1]});
       };
-      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Formato de imagem não suportado. Use um print (PNG/JPG).')); };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Formato de imagem não suportado. Use PNG ou JPG.')); };
       img.src = url;
     });
   }
+  function loadXlsx(){
+    if(window.XLSX) return Promise.resolve(window.XLSX);
+    return new Promise((resolve, reject) => { const s = document.createElement('script'); s.src = XLSX_URL; s.onload = () => resolve(window.XLSX); s.onerror = () => reject(new Error('Não foi possível carregar o leitor de planilhas.')); document.head.appendChild(s); });
+  }
+  async function exportFileToText(file){
+    const name = (file.name || '').toLowerCase();
+    if(/\.(csv|txt|tsv)$/.test(name)) return await file.text();
+    const XLSX = await loadXlsx();
+    const wb = XLSX.read(await file.arrayBuffer(), {type: 'array', cellDates: true});
+    return wb.SheetNames.map(n => '### ' + n + '\n' + XLSX.utils.sheet_to_csv(wb.Sheets[n], {dateNF: 'yyyy-mm-dd'})).join('\n\n');
+  }
+  async function callAI(payload){
+    const user = auth.currentUser;
+    if(!user) throw new Error('Sessão expirada. Entre de novo.');
+    const token = await user.getIdToken();
+    const resp = await fetch('/api/ler-imagem', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer ' + token}, body: JSON.stringify(payload)});
+    let out = null; try{ out = await resp.json(); }catch(e){}
+    if(!resp.ok || !out || !out.ok) throw new Error((out && out.error) || ('Erro ' + resp.status + ' ao ler.'));
+    return out.data;
+  }
   function setField(id, val){
-    if(val === null || val === undefined || val === '' || (typeof val === 'number' && isNaN(val))) return false;
+    if(!has(val)) return false;
     const el = document.getElementById(id);
-    el.value = typeof val === 'number' ? Math.round(val * 100) / 100 : val;
+    el.value = typeof val === 'number' ? Math.round(val * 1e6) / 1e6 : val;
     el.classList.add('ai-filled'); setTimeout(() => el.classList.remove('ai-filled'), 4000);
     return true;
   }
   function validISO(s){ return /^\d{4}-\d{2}-\d{2}$/.test(s || '') && !isNaN(parseDate(s)); }
 
-  function applyGeracao(d, fileDate){
-    if(d.periodo === 'dia') return {ok:false, text:'Esse print é de um dia só. No app, abra a visão "Mês" e tire o print de novo.'};
-    const notes = [];
-    if(d.periodo === 'mes' && has(d.geracao_kwh)){
-      if(d.referencia) setGenMonth(d.referencia);
-      const key = genKey();
-      setField('gKwh', d.geracao_kwh);
-      const partialDay = defaultDaysFor(key, fileDate) || defaultDaysFor(key);
-      document.getElementById('gDays').value = partialDay || daysInMonth(key);
-      notes.push(`Lido: ${fmtNum(d.geracao_kwh, 1)} kWh em ${keyLabel(key)}${partialDay ? ' (mês em andamento, até o dia ' + partialDay + ')' : ''}.`);
-    } else if(Array.isArray(d.meses) && d.meses.length){
-      const key = genKey();
-      const hit = d.meses.find(x => x.mes === key);
-      if(!hit) return {ok:false, text:`O print tem ${d.meses.length} meses, mas não ${keyLabel(key)}. Escolha o mês certo e leia de novo.`};
-      setField('gKwh', hit.kwh);
-      document.getElementById('gDays').value = defaultDaysFor(key) || daysInMonth(key);
-      notes.push(`Lido da visão anual: ${fmtNum(hit.kwh, 1)} kWh em ${keyLabel(key)}.`);
-    } else return {ok:false, text: d.aviso || 'Não encontrei a geração no print. Tente a visão "Mês" do app.'};
-    if(d.aviso) notes.push(d.aviso);
-    notes.push('Confira antes de salvar.');
-    updateGenPreview();
-    return {ok:true, text: notes.join(' ')};
-  }
-  function applyGeracaoBill(d, fileDate, expected){
-    const per = periodByMonth(document.getElementById('bStart').value, document.getElementById('bEnd').value);
-    const needed = per ? per.months.map(x => x.key) : [expected];
-    if(d.periodo === 'dia') return {ok:false, text:'Esse print é de um dia só. Abra a visão "Mês" no app.'};
-    let key = expected, kwh = null;
-    if(d.periodo === 'mes' && has(d.geracao_kwh)){
-      if(d.referencia && d.referencia !== expected){
-        if(needed.includes(d.referencia)) key = d.referencia;
-        else return {ok:false, text:`Esse print é de ${keyLabel(d.referencia)}, mas preciso de ${keyLabel(expected)}.`};
-      }
-      kwh = d.geracao_kwh;
-    } else if(Array.isArray(d.meses) && d.meses.length){
-      const hit = d.meses.find(x => x.mes === expected);
-      if(!hit) return {ok:false, text:`Não achei ${keyLabel(expected)} nesse print.`};
-      kwh = hit.kwh;
-    } else return {ok:false, text: d.aviso || 'Não encontrei a geração no print. Use a visão "Mês" do app.'};
-    const days = defaultDaysFor(key, fileDate) || defaultDaysFor(key) || null;
-    draftGens[key] = {kwh, days: (days && days < daysInMonth(key)) ? days : null};
-    renderGenList(); updateBillPreview();
-    return {ok:true, key};
-  }
   function applyConta(d){
     handleTitular(d.titular, d.cidade);
-    const s = validISO(d.leitura_anterior) && setField('bStart', d.leitura_anterior);
-    const e = validISO(d.leitura_atual) && setField('bEnd', d.leitura_atual);
-    const a = setField('bPaid', d.valor_total);
-    const b = setField('bGrid', d.consumo_rede_kwh);
-    const c = setField('bInjected', d.energia_injetada_kwh);
-    if(!a && !b && !c && !s) return {ok:false, text: d.aviso || 'Não consegui ler a conta. Tente uma foto mais nítida.'};
-    if(has(d.tarifa_kwh) && !document.getElementById('bTariff').value) setField('bTariff', d.tarifa_kwh);
-    renderGenList();
+    const okS = validISO(d.leitura_anterior) && setField('bStart', d.leitura_anterior);
+    const okE = validISO(d.leitura_atual) && setField('bEnd', d.leitura_atual);
+    const lig = {monofasico:'monofasico', bifasico:'bifasico', trifasico:'trifasico'}[d.tipo_ligacao];
+    if(lig) document.getElementById('bLigacao').value = lig;
+    const map = {bPaid:'valor_total', bTotalDist:'total_distribuidora', bGrid:'consumo_rede_kwh', bInjected:'energia_injetada_kwh', bKwhComp:'kwh_compensados',
+      bTusd:'tarifa_tusd_com_tributos', bTe:'tarifa_te_com_tributos', bTusdComp:'tarifa_tusd_compensada_com_tributos', bValorComp:'valor_compensado',
+      bBandeira:'bandeira_valor', bMulta:'multa_juros_atualizacao', bCip:'iluminacao_publica', bAjustes:'ajustes', bSaldo:'saldo_creditos_kwh'};
+    const got = {};
+    Object.entries(map).forEach(([id, f]) => { if(f === 'valor_compensado' && has(d[f])) d[f] = Math.abs(d[f]); got[id] = setField(id, d[f]); });
+    if(d.cip_dentro_total_distribuidora === false) document.getElementById('bCipIn').checked = false;
+    if(d.cip_dentro_total_distribuidora === true) document.getElementById('bCipIn').checked = true;
+    document.getElementById('bDebitos').value = debitosText((d.debitos_em_aberto || []).filter(x => has(x.valor)));
+    syncTariffField();
+    const labels = {bTotalDist:'Total Distribuidora', bGrid:'energia comprada', bInjected:'energia injetada', bKwhComp:'kWh compensados', bTusd:'TUSD', bTe:'TE', bTusdComp:'TUSD compensada', bValorComp:'valor compensado'};
+    const missing = [!okS && 'leitura anterior', !okE && 'leitura atual'].concat(Object.keys(labels).filter(id => !got[id]).map(id => labels[id])).filter(Boolean);
+    if(!okS && !got.bPaid && !got.bGrid) return {ok:false, text: d.aviso || 'Não consegui ler a conta. Tente uma foto mais nítida, com a tabela de itens visível.'};
+    renderGenList(); updateBillPreview();
+    if(missing.length) document.getElementById('bDetails').open = true;
     setTimeout(() => document.getElementById('bStep2').scrollIntoView({behavior:'smooth', block:'start'}), 200);
-    const missing = [!s && 'leitura anterior', !e && 'leitura atual', !a && 'valor pago', !b && 'energia comprada', !c && 'energia injetada'].filter(Boolean);
-    const notes = [];
-    if(missing.length) notes.push('Não encontrei: ' + missing.join(', ') + '. Preencha à mão.');
-    if(d.aviso) notes.push(d.aviso);
-    notes.push('Confira antes de salvar.');
-    updateBillPreview();
-    return {ok:true, text: notes.join(' ')};
+    return {ok:true, text: (missing.length ? 'Não encontrei: ' + missing.join(', ') + '. Confira em "Conferir ou corrigir". ' : 'Conta lida. ') + (d.aviso ? d.aviso + ' ' : '') + 'Confira antes de salvar.'};
   }
+
+  function neededKeys(){ const p = periodDays(document.getElementById('bStart').value, document.getElementById('bEnd').value); return p ? p.months.map(m => m.key) : []; }
+  function applyGenData(ctx, d, kind){
+    const scope = ctx.scope;
+    const target = scope === 'gen' ? genKey() : ctx.month;
+    const results = [];
+    if(kind === 'print'){
+      if(d.periodo === 'dia') return {ok:false, text:'Esse print é de um dia só. Abra a visão "Mês" no app.'};
+      let key = d.referencia || target;
+      if(scope === 'bill' && key !== target){
+        if(!neededKeys().includes(key)) return {ok:false, text:`Esse print é de ${keyLabel(key)}, mas preciso de ${keyLabel(target)}.`};
+      }
+      if(scope === 'gen' && key !== target) setGenMonth(key);
+      const daily = {};
+      (d.diarios || []).forEach(x => { const day = parseInt(x.dia); if(day >= 1 && day <= daysInMonth(key) && has(x.kwh)) daily[day] = Number(x.kwh); });
+      if(!Object.keys(daily).length) return {ok:false, text: d.aviso || 'Não consegui ler as barras diárias. Prefira o arquivo exportado do app.'};
+      editors[scope][key] = {daily, topTotal: has(d.total_topo_kwh) ? Number(d.total_topo_kwh) : null, source:'print', estimated: !!d.valores_estimados_pela_altura};
+      results.push(key);
+    } else {
+      const byMonth = {};
+      (d.diarios || []).forEach(x => { if(!validISO(x.data) || !has(x.kwh)) return; const k = x.data.slice(0,7); (byMonth[k] = byMonth[k] || {})[parseInt(x.data.slice(8,10))] = Number(x.kwh); });
+      let keys = Object.keys(byMonth);
+      if(!keys.length) return {ok:false, text: d.aviso || 'Não encontrei a geração diária no arquivo.'};
+      if(scope === 'bill'){ const need = neededKeys(); keys = keys.filter(k => need.includes(k)); if(!keys.length) return {ok:false, text:`O arquivo é de ${Object.keys(byMonth).map(keyLabel).join(', ')}, mas a conta precisa de ${need.map(keyLabel).join(' e ')}.`}; }
+      else { const k = byMonth[target] ? target : keys.sort((a,b) => Object.keys(byMonth[b]).length - Object.keys(byMonth[a]).length)[0]; keys = [k]; if(k !== target) setGenMonth(k); }
+      keys.forEach(k => { editors[scope][k] = {daily: byMonth[k], topTotal: (keys.length === 1 && has(d.total_kwh)) ? Number(d.total_kwh) : null, source:'export', estimated:false}; results.push(k); });
+    }
+    if(scope === 'bill'){ renderGenList(); updateBillPreview(); } else renderGenEditor();
+    const parts = results.map(k => { const ed = editors[scope][k]; const tc = topCheck(ed); return `${keyLabel(k)}: ${maxDay(ed.daily) ? Object.keys(ed.daily).length : 0} dias, soma ${fmtNum(dailySum(ed.daily),1)} kWh${tc && tc.bad ? ' — leitura do gráfico imprecisa, confira os valores diários' : ''}`; });
+    const anyBad = results.some(k => { const tc = topCheck(editors[scope][k]); return tc && tc.bad; });
+    return {ok: !anyBad, warn: anyBad, text: parts.join(' · ') + (d.aviso ? ' · ' + d.aviso : '')};
+  }
+
   aiInput.addEventListener('change', async () => {
     const file = aiInput.files && aiInput.files[0];
-    const kind = aiKind; aiInput.value = '';
-    if(!file || !kind) return;
-    const month = aiMonth;
-    const rowStatus = (cls, text) => { const el = document.getElementById('gst-' + month); if(el){ el.className = 'gs ' + cls; el.textContent = text; } };
-    if(kind === 'geracao-bill') rowStatus('miss', 'Lendo o print… (leva uns segundos)'); else aiStatus(kind, 'busy', 'Lendo… (leva uns segundos)');
+    const ctx = aiCtx; aiInput.value = '';
+    if(!file || !ctx) return;
+    ctxStatus(ctx, 'busy', 'Lendo… (leva uns segundos)');
     try{
-      const payload = await fileToPayload(file);
-      const user = auth.currentUser;
-      if(!user) throw new Error('Sessão expirada. Entre de novo.');
-      const token = await user.getIdToken();
-      const resp = await fetch('/api/ler-imagem', {
-        method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token},
-        body: JSON.stringify({kind: kind === 'geracao-bill' ? 'geracao' : kind, mediaType: payload.mediaType, data: payload.data})
-      });
-      let out = null; try{ out = await resp.json(); }catch(e){}
-      if(!resp.ok || !out || !out.ok) throw new Error((out && out.error) || ('Erro ' + resp.status + ' ao ler a imagem.'));
-      const fileDate = file.lastModified ? new Date(file.lastModified) : null;
-      if(kind === 'geracao-bill'){
-        const res = applyGeracaoBill(out.data, fileDate, month);
-        if(!res.ok) rowStatus('err', res.text);
-        return;
+      let res;
+      if(ctx.kind === 'conta'){
+        const p = await fileToImagePayload(file);
+        res = applyConta(await callAI({kind:'conta', mediaType: p.mediaType, data: p.data}));
+      } else if(ctx.kind === 'print'){
+        const p = await fileToImagePayload(file);
+        res = applyGenData(ctx, await callAI({kind:'geracao', mediaType: p.mediaType, data: p.data}), 'print');
+      } else {
+        const text = await exportFileToText(file);
+        res = applyGenData(ctx, await callAI({kind:'exportacao', text}), 'export');
       }
-      const res = kind === 'geracao' ? applyGeracao(out.data, fileDate) : applyConta(out.data);
-      aiStatus(kind, res.ok ? 'ok' : 'err', res.text);
-    }catch(err){ console.error(err); if(kind === 'geracao-bill') rowStatus('err', err.message || 'Falha ao ler.'); else aiStatus(kind, 'err', err.message || 'Falha ao ler.'); }
+      if(ctx.scope === 'bill' && ctx.kind !== 'conta'){ if(!res.ok && !res.warn) ctxStatus(ctx, 'err', res.text); else if(res.warn){ const el = document.getElementById('gst-' + ctx.month); if(el){ el.className = 'gs err'; el.textContent = 'Leitura do gráfico imprecisa — confira os valores diários.'; } } }
+      else ctxStatus(ctx, res.ok ? 'ok' : 'err', res.text);
+    }catch(err){ console.error(err); ctxStatus(ctx, 'err', err.message || 'Falha ao ler.'); }
   });
 
   // ---------- Eventos ----------
   document.getElementById('newClientBtn').addEventListener('click', () => openClientForm(null));
   document.getElementById('search').addEventListener('input', e => { searchQuery = e.target.value.trim().toLowerCase(); renderClients(); });
-
   document.getElementById('tabPos').addEventListener('click', async e => {
-    const t = e.target.closest('[data-act]');
-    if(!t) return;
+    const t = e.target.closest('[data-act]'); if(!t) return;
     const act = t.dataset.act, id = t.dataset.id;
-    if(act === 'ai-pick'){ aiKind = t.dataset.kind; aiMonth = t.dataset.month || null; aiInput.click(); return; }
+    if(act === 'ai-pick'){
+      aiCtx = {kind: t.dataset.kind, scope: t.dataset.scope, month: t.dataset.month || null};
+      aiInput.accept = aiCtx.kind === 'export' ? '.xlsx,.xls,.csv,.txt' : (aiCtx.kind === 'conta' ? 'image/*,application/pdf' : 'image/*');
+      aiInput.click(); return;
+    }
     if(act === 'quick-client'){ await quickClient(t.dataset.name, t.dataset.city); return; }
     if(act === 'expand'){ const body = document.querySelector(`#clientList .card-body[data-id="${id}"]`); if(body) body.classList.toggle('open'); return; }
     if(act === 'new-gen'){ openGenForm({clientId: t.dataset.client, month: t.dataset.month || null}); return; }
@@ -2019,21 +2166,12 @@
     if(act === 'edit-client'){ const c = clientById(id); if(c) openClientForm(c); return; }
     if(act === 'show-msg'){ const r = recs.find(x => x.id === id); if(r) openMsgCard(r); return; }
     if(act === 'close-msg'){ const b = document.getElementById('msgCard'); if(b) b.remove(); return; }
-    if(act === 'copy-msg'){
-      const r = recs.find(x => x.id === id); if(!r) return;
-      try{ await navigator.clipboard.writeText(messageFor(r)); toast('Mensagem copiada'); }
-      catch(err){ toast('Não deu para copiar. Selecione o texto manualmente.'); }
-      return;
-    }
+    if(act === 'copy-msg'){ const r = recs.find(x => x.id === id); if(!r) return; try{ await navigator.clipboard.writeText(messageFor(r)); toast('Mensagem copiada'); }catch(err){ toast('Não deu para copiar. Selecione o texto manualmente.'); } return; }
     if(act === 'wa'){ setTimeout(() => toast('Depois de enviar, marque como enviada.'), 500); return; }
     if(act === 'mark-sent'){ const r = recs.find(x => x.id === id); if(!r) return; await setFlag(id, 'sent', !r.sent); const b = document.getElementById('msgCard'); if(b) b.remove(); return; }
     if(act === 'mark-checked'){ await setFlag(id, 'checked', true); toast('Marcado como verificado'); return; }
     if(act === 'del-rec' || act === 'del-client'){
-      if(t.dataset.confirming !== '1'){
-        t.dataset.confirming = '1'; const orig = t.textContent; t.textContent = 'Confirmar?';
-        setTimeout(() => { if(t.isConnected){ t.dataset.confirming = '0'; t.textContent = orig; } }, 3000);
-        return;
-      }
+      if(t.dataset.confirming !== '1'){ t.dataset.confirming = '1'; const orig = t.textContent; t.textContent = 'Confirmar?'; setTimeout(() => { if(t.isConnected){ t.dataset.confirming = '0'; t.textContent = orig; } }, 3000); return; }
       if(act === 'del-rec'){ await remove(recsRef, id); return; }
       for(const r of recs.filter(x => x.clientId === id)) await remove(recsRef, r.id);
       await remove(clientsRef, id);
