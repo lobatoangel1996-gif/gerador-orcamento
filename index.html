@@ -211,6 +211,10 @@
   #tabPos .day-cell input{ padding: 6px 6px; font-family: var(--font-mono); font-size: 12px; }
   #tabPos .day-cell.in-period input{ border-color: rgba(255,176,32,.55); }
   #tabPos .day-cell.in-period span{ color: var(--amber); }
+  #tabPos .comp-box{ margin-top: 14px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface-2); font-size: 13px; }
+  #tabPos .comp-title{ margin-bottom: 8px; }
+  #tabPos .comp-item{ display:flex; justify-content:space-between; gap:10px; padding: 4px 0; font-family: var(--font-mono); font-size: 12px; border-top: 1px dashed var(--border); }
+  #tabPos .comp-item.extra{ color: var(--amber); }
   #tabPos .alert-box{ margin-top: 14px; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(255,99,99,.35); background: rgba(255,99,99,.06); }
   #tabPos .alert-title{ font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--red); margin-bottom: 8px; }
   #tabPos .alert-item{ font-size: 13px; line-height: 1.5; padding: 4px 0 4px 10px; border-left: 3px solid var(--amber); margin-bottom: 6px; }
@@ -602,6 +606,7 @@
           <div class="preview-item"><div class="pk">Piso esperado da conta</div><div class="pv" id="bpPiso">—</div></div>
           <div class="preview-item"><div class="pk">Previsto no período</div><div class="pv" id="bpForecast">—</div></div>
         </div>
+        <div class="comp-box" id="bpComp" style="display:none;"></div>
         <div class="breakdown" id="bpBreakdown"></div>
         <div id="bpWarn"></div>
         <div class="alert-box" id="bpAlerts" style="display:none;"></div>
@@ -1355,7 +1360,7 @@
 
   function calcBill(b, c){
     const out = {per:null, gen:null, missing:{}, missingKeys:[], tariff:null, bandeiraKwh:0, autoconsumo:null, consumoTotal:null,
-      semSolar:null, energiaPaga:null, eco:null, credKwh:null, credRS:null, piso:null, forecast:null, alerts:[], warnings:[]};
+      semSolar:null, energiaPaga:null, eco:null, composicao:null, credKwh:null, credRS:null, piso:null, forecast:null, alerts:[], warnings:[]};
     if(!b || !c) return out;
     const per = periodDays(b.start, b.end);
     out.per = per;
@@ -1373,6 +1378,17 @@
     // CIP e ajustes avulsos já ficam fora do Total Distribuidora
     if(has(b.totalDist)) out.energiaPaga = b.totalDist - n0(b.multa);
     else if(has(b.paid)) out.energiaPaga = b.paid - n0(b.multa) - n0(b.cip) - n0(b.ajustes);
+    // Composição do total a pagar (o que é energia e o que não é)
+    if(has(b.paid) && out.energiaPaga !== null){
+      const items = [{k:'energia', label:'Energia (com o solar)', v: out.energiaPaga}];
+      if(n0(b.cip)) items.push({k:'cip', label:'Iluminação pública (prefeitura)', v: b.cip});
+      if(n0(b.multa)) items.push({k:'multa', label:'Multa/juros/atualização (atraso)', v: b.multa});
+      if(n0(b.ajustes)) items.push({k:'ajustes', label: b.ajustes < 0 ? 'Crédito avulso da distribuidora' : 'Ajuste avulso da distribuidora', v: b.ajustes});
+      const soma = items.reduce((t,x) => t + x.v, 0), resto = b.paid - soma;
+      if(Math.abs(resto) >= 0.05) items.push({k:'outros', label:'Outros itens não identificados', v: resto});
+      out.composicao = {total: b.paid, items};
+      if(Math.abs(resto) >= 0.05) out.warnings.push(`A soma dos itens não fecha com o total a pagar (diferença de ${fmtBRL(resto)}). Confira Total Distribuidora, CIP, multa e ajustes em "Conferir".`);
+    }
     if(!per){ if(b.start || b.end) out.warnings.push('Confira as datas: a leitura atual precisa ser depois da anterior.'); }
     else {
       if(per.total > 40) out.warnings.push(`Período de ${per.total} dias: confira as datas de leitura.`);
@@ -1452,6 +1468,15 @@
     const p = [];
     p.push(first ? `Olá, ${nome}! Chegou sua primeira conta com o sistema solar funcionando ☀️` : `Olá, ${nome}! Chegou sua conta de luz de ${periodo}.`);
     p.push(`No período de ${periodo}, o sistema gerou ${fmtNum(k.gen)} kWh. Sem o solar, a energia ${L.da} teria custado cerca de ${fmtBRL(k.semSolar)}; com o solar, a parte de energia da conta ficou em ${fmtBRL(k.energiaPaga)}. Economia de ${fmtBRL(k.eco)}!`);
+    const extras = [];
+    if(n0(b.multa) > 0 || n0(b.ajustes) !== 0 || (b.debitos && b.debitos.length)){
+      if(n0(b.cip)) extras.push(`${fmtBRL(b.cip)} de iluminação pública, que a prefeitura cobra com ou sem solar`);
+      if(n0(b.multa) > 0) extras.push(`${fmtBRL(b.multa)} de multa e juros pelo atraso no pagamento da conta anterior`);
+      if(n0(b.ajustes) > 0) extras.push(`${fmtBRL(b.ajustes)} de um ajuste avulso da distribuidora`);
+      if(n0(b.ajustes) < 0) extras.push(`um crédito avulso de ${fmtBRL(-b.ajustes)} da distribuidora`);
+      if(has(b.paid) && extras.length) p.push(`A conta veio ${fmtBRL(b.paid)} no total. Desse valor, ${fmtBRL(k.energiaPaga)} é energia; o resto é ${extras.length > 1 ? extras.slice(0,-1).join('; ') + '; e ' + extras[extras.length-1] : extras[0]}. Esses itens não têm relação com o sistema solar.`);
+      if(b.debitos && b.debitos.length) p.push(`Vi também que a conta mostra ${b.debitos.length === 1 ? 'um débito anterior em aberto' : b.debitos.length + ' débitos anteriores em aberto'} (${b.debitos.map(x => fmtBRL(x.valor)).join(' + ')}). Vale conferir com a distribuidora para evitar corte.`);
+    }
     if(k.credKwh !== null && k.credKwh > 0) p.push(`Além disso, sobraram ${fmtNum(k.credKwh)} kWh de créditos${k.credRS !== null ? ' (cerca de ' + fmtBRL(k.credRS) + ')' : ''}, que ficam guardados para abater as próximas contas.`);
     if(k.piso !== null) p.push(`Importante: mesmo com o solar, a conta tem um valor mínimo de cerca de ${fmtBRL(k.piso)} por mês (taxa mínima da distribuidora, parte do uso da rede e iluminação pública), que não dá para zerar.`);
     const saz = sazonalidade(c, b); if(saz) p.push(saz);
@@ -1874,6 +1899,11 @@
     set('bpCredRS', k.credRS !== null ? fmtBRL(k.credRS) : '—');
     set('bpPiso', k.piso !== null ? fmtBRL(k.piso) : '—');
     set('bpForecast', k.forecast ? fmtNum(k.forecast) + ' kWh' : '—');
+    const cp = document.getElementById('bpComp');
+    if(k.composicao){
+      cp.style.display = 'block';
+      cp.innerHTML = `<div class="comp-title">Total a pagar: <b>${fmtBRL(k.composicao.total)}</b></div>` + k.composicao.items.map(x => `<div class="comp-item ${x.k === 'energia' ? '' : 'extra'}"><span>${escapeHtml(x.label)}</span><span>${fmtBRL(x.v)}</span></div>`).join('');
+    } else { cp.style.display = 'none'; cp.innerHTML = ''; }
     const bd = document.getElementById('bpBreakdown');
     const lines = [];
     if(k.autoconsumo !== null){
