@@ -35,7 +35,6 @@ Extraia os dados e responda SOMENTE com um JSON, sem texto em volta, neste forma
  "tipo_ligacao": "monofasico" | "bifasico" | "trifasico" | null,
  "valor_total": número ou null (total a pagar),
  "total_distribuidora": número ou null (linha "Total Distribuidora" ou subtotal equivalente dos itens da distribuidora),
- "cip_dentro_total_distribuidora": true | false | null (se a iluminação pública está incluída no Total Distribuidora),
  "consumo_rede_kwh": número ou null (energia ativa consumida/fornecida pela rede no período, medida),
  "energia_injetada_kwh": número ou null (energia injetada na rede no período, medida; não confundir com saldo),
  "tarifa_tusd_com_tributos": número ou null (R$/kWh, coluna "Tarifa com tributos" da linha de consumo TUSD),

@@ -570,7 +570,7 @@
         </div>
         <div class="form-row three">
           <div><label>Multa, juros e atualização</label><input type="number" id="bMulta" step="0.01"></div>
-          <div><label>Iluminação pública (CIP)</label><input type="number" id="bCip" step="0.01"><label class="inline-check"><input type="checkbox" id="bCipIn" checked> está dentro do Total Distribuidora</label></div>
+          <div><label>Iluminação pública (CIP)</label><input type="number" id="bCip" step="0.01"></div>
           <div><label>Ajustes / créditos avulsos</label><input type="number" id="bAjustes" step="0.01"><div class="hint">Negativo = crédito; positivo = cobrança.</div></div>
         </div>
         <div class="form-row">
@@ -1369,8 +1369,9 @@
     if(minimo && has(out.tariff) && has(b.tusd) && has(b.tusdComp) && has(b.kwhComp)){
       out.piso = minimo * out.tariff + (b.tusd - b.tusdComp) * b.kwhComp + n0(b.cip);
     }
-    // Energia paga com solar: tira multa/juros, iluminação pública e ajustes avulsos (não são energia)
-    if(has(b.totalDist)) out.energiaPaga = b.totalDist - n0(b.multa) - (b.cipIn !== false ? n0(b.cip) : 0) - n0(b.ajustes);
+    // Energia paga com solar = Total Distribuidora − multa/juros/atualização
+    // CIP e ajustes avulsos já ficam fora do Total Distribuidora
+    if(has(b.totalDist)) out.energiaPaga = b.totalDist - n0(b.multa);
     else if(has(b.paid)) out.energiaPaga = b.paid - n0(b.multa) - n0(b.cip) - n0(b.ajustes);
     if(!per){ if(b.start || b.end) out.warnings.push('Confira as datas: a leitura atual precisa ser depois da anterior.'); }
     else {
@@ -1803,7 +1804,6 @@
   function readBillForm(){
     const d = {type:'conta', clientId: document.getElementById('bClient').value};
     Object.entries(BILL_FIELDS).forEach(([id, f]) => { d[f] = TEXT_FIELDS.includes(id) ? (document.getElementById(id).value.trim() || null) : num(id); });
-    d.cipIn = document.getElementById('bCipIn').checked;
     d.debitos = parseDebitos(document.getElementById('bDebitos').value);
     if(has(d.tusd) && has(d.te)) d.tariff = Math.round((d.tusd + d.te) * 1e6) / 1e6;
     return d;
@@ -1880,7 +1880,7 @@
       lines.push(`Autoconsumo (gerado − injetado): ${fmtNum(k.autoconsumo)} kWh`);
       lines.push(`${L.consumo}: ${fmtNum(k.consumoTotal)} kWh`);
       lines.push(`Tarifa usada: R$ ${fmtNum(k.tariff,6)} + bandeira R$ ${fmtNum(k.bandeiraKwh,6)}/kWh`);
-      lines.push(`Energia paga = Total Distribuidora − multa/juros − CIP − ajustes`);
+      lines.push(`Energia paga = Total Distribuidora − multa/juros/atualização`);
     }
     if(k.piso !== null) lines.push(`Piso = mínimo ${MINIMO_LIGACAO[d.ligacao || (c && c.ligacao)]} kWh × tarifa + (TUSD − TUSD compensada) × kWh compensados + CIP`);
     bd.style.display = lines.length ? 'grid' : 'none';
@@ -1900,7 +1900,6 @@
 
   function fillBillForm(b){
     Object.entries(BILL_FIELDS).forEach(([id, f]) => { document.getElementById(id).value = b && has(b[f]) ? b[f] : ''; });
-    document.getElementById('bCipIn').checked = !(b && b.cipIn === false);
     document.getElementById('bDebitos').value = b ? debitosText(b.debitos) : '';
     syncTariffField();
   }
@@ -1927,7 +1926,7 @@
     if(c && c.ligacao && !document.getElementById('bLigacao').value) document.getElementById('bLigacao').value = c.ligacao;
     editors.bill = {}; renderGenList(); updateBillPreview();
   });
-  Object.keys(BILL_FIELDS).concat(['bCipIn','bDebitos']).forEach(id => {
+  Object.keys(BILL_FIELDS).concat(['bDebitos']).forEach(id => {
     const el = document.getElementById(id);
     el.addEventListener('input', () => { if(id === 'bTusd' || id === 'bTe') syncTariffField(); updateBillPreview(); });
     el.addEventListener('change', () => { if(id === 'bStart' || id === 'bEnd'){ renderGenList(); } updateBillPreview(); });
@@ -2079,8 +2078,6 @@
       bBandeira:'bandeira_valor', bMulta:'multa_juros_atualizacao', bCip:'iluminacao_publica', bAjustes:'ajustes', bSaldo:'saldo_creditos_kwh'};
     const got = {};
     Object.entries(map).forEach(([id, f]) => { if(f === 'valor_compensado' && has(d[f])) d[f] = Math.abs(d[f]); got[id] = setField(id, d[f]); });
-    if(d.cip_dentro_total_distribuidora === false) document.getElementById('bCipIn').checked = false;
-    if(d.cip_dentro_total_distribuidora === true) document.getElementById('bCipIn').checked = true;
     document.getElementById('bDebitos').value = debitosText((d.debitos_em_aberto || []).filter(x => has(x.valor)));
     syncTariffField();
     const labels = {bTotalDist:'Total Distribuidora', bGrid:'energia comprada', bInjected:'energia injetada', bKwhComp:'kWh compensados', bTusd:'TUSD', bTe:'TE', bTusdComp:'TUSD compensada', bValorComp:'valor compensado'};
