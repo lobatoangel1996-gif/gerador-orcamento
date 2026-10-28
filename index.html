@@ -1459,30 +1459,20 @@
   }
 
   function billMessage(b, c){
+    // Mensagem curta: só o que importa para o cliente. Detalhes (composição, piso, alertas) ficam no painel.
     const k = calcBill(b, c);
     if(k.eco === null) return '';
-    const L = local(c), nome = firstName(c);
+    const nome = firstName(c);
     const periodo = `${dateBR(b.start)} a ${dateBR(b.end)}`;
     const first = isFirstBill(b);
     const semDebito = !(b.debitos && b.debitos.length);
     const p = [];
-    p.push(first ? `Olá, ${nome}! Chegou sua primeira conta com o sistema solar funcionando ☀️` : `Olá, ${nome}! Chegou sua conta de luz de ${periodo}.`);
-    p.push(`No período de ${periodo}, o sistema gerou ${fmtNum(k.gen)} kWh. Sem o solar, a energia ${L.da} teria custado cerca de ${fmtBRL(k.semSolar)}; com o solar, a parte de energia da conta ficou em ${fmtBRL(k.energiaPaga)}. Economia de ${fmtBRL(k.eco)}!`);
-    const extras = [];
-    if(n0(b.multa) > 0 || n0(b.ajustes) !== 0 || (b.debitos && b.debitos.length)){
-      if(n0(b.cip)) extras.push(`${fmtBRL(b.cip)} de iluminação pública, que a prefeitura cobra com ou sem solar`);
-      if(n0(b.multa) > 0) extras.push(`${fmtBRL(b.multa)} de multa e juros pelo atraso no pagamento da conta anterior`);
-      if(n0(b.ajustes) > 0) extras.push(`${fmtBRL(b.ajustes)} de um ajuste avulso da distribuidora`);
-      if(n0(b.ajustes) < 0) extras.push(`um crédito avulso de ${fmtBRL(-b.ajustes)} da distribuidora`);
-      if(has(b.paid) && extras.length) p.push(`A conta veio ${fmtBRL(b.paid)} no total. Desse valor, ${fmtBRL(k.energiaPaga)} é energia; o resto é ${extras.length > 1 ? extras.slice(0,-1).join('; ') + '; e ' + extras[extras.length-1] : extras[0]}. Esses itens não têm relação com o sistema solar.`);
-      if(b.debitos && b.debitos.length) p.push(`Vi também que a conta mostra ${b.debitos.length === 1 ? 'um débito anterior em aberto' : b.debitos.length + ' débitos anteriores em aberto'} (${b.debitos.map(x => fmtBRL(x.valor)).join(' + ')}). Vale conferir com a distribuidora para evitar corte.`);
-    }
-    if(k.credKwh !== null && k.credKwh > 0) p.push(`Além disso, sobraram ${fmtNum(k.credKwh)} kWh de créditos${k.credRS !== null ? ' (cerca de ' + fmtBRL(k.credRS) + ')' : ''}, que ficam guardados para abater as próximas contas.`);
-    if(k.piso !== null) p.push(`Importante: mesmo com o solar, a conta tem um valor mínimo de cerca de ${fmtBRL(k.piso)} por mês (taxa mínima da distribuidora, parte do uso da rede e iluminação pública), que não dá para zerar.`);
-    const saz = sazonalidade(c, b); if(saz) p.push(saz);
-    if(!first){ const acum = ecoAccum(b.clientId, b.end); if(acum > k.eco) p.push(`Desde a instalação, já são ${fmtBRL(acum)} economizados.`); }
-    if(first && semDebito) p.push('Fico muito feliz com o resultado! Se conhecer alguém que também queira reduzir a conta de luz, posso fazer uma análise sem compromisso. E se puder deixar sua avaliação no Google, ajuda muito a gente!');
-    p.push('Qualquer dúvida, é só chamar.');
+    p.push(first ? `Olá, ${nome}! Chegou sua primeira conta com o sistema solar funcionando ☀️` : `Olá, ${nome}! Chegou sua conta de luz (${periodo}) ☀️`);
+    p.push(`De ${periodo}, o sistema gerou ${fmtNum(k.gen)} kWh. Sem o solar, a energia teria custado cerca de ${fmtBRL(k.semSolar)}; com o solar, ficou em ${fmtBRL(k.energiaPaga)}. Economia de ${fmtBRL(k.eco)}!`);
+    if(k.credKwh !== null && k.credKwh > 0) p.push(`E ainda sobraram ${fmtNum(k.credKwh)} kWh de créditos, guardados para as próximas contas.`);
+    if(!semDebito) p.push(`Obs.: a conta mostra ${b.debitos.length === 1 ? 'um débito anterior em aberto' : 'débitos anteriores em aberto'} (${b.debitos.map(x => fmtBRL(x.valor)).join(' + ')}). Vale regularizar para evitar corte.`);
+    if(first && semDebito) p.push('Se conhecer alguém que também queira reduzir a conta de luz, me indica! E se puder deixar sua avaliação no Google, ajuda muito a gente 🙏');
+    else if(!first){ const acum = ecoAccum(b.clientId, b.end); if(acum > k.eco) p.push(`Desde a instalação, já são ${fmtBRL(acum)} economizados.`); }
     return p.join('\n\n');
   }
 
