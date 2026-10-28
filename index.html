@@ -1459,32 +1459,20 @@
   }
 
   function billMessage(b, c){
-    // Mensagem curta: só o que importa para o cliente. Detalhes (composição, piso, alertas) ficam no painel.
+    // Mensagem curta: geração, sem solar, com solar, economia e créditos. Todo o resto fica no painel.
     const k = calcBill(b, c);
     if(k.eco === null) return '';
-    const nome = firstName(c);
-    const periodo = `${dateBR(b.start)} a ${dateBR(b.end)}`;
-    const first = isFirstBill(b);
-    const semDebito = !(b.debitos && b.debitos.length);
-    const p = [];
-    p.push(first ? `Olá, ${nome}! Chegou sua primeira conta com o sistema solar funcionando ☀️` : `Olá, ${nome}! Chegou sua conta de luz (${periodo}) ☀️`);
-    p.push(`De ${periodo}, o sistema gerou ${fmtNum(k.gen)} kWh. Sem o solar, a energia teria custado cerca de ${fmtBRL(k.semSolar)}; com o solar, ficou em ${fmtBRL(k.energiaPaga)}. Economia de ${fmtBRL(k.eco)}!`);
-    if(k.composicao){
-      const extras = k.composicao.items.filter(x => x.k !== 'energia');
-      const nomes = {cip:'Iluminação pública (prefeitura)', multa:'Multa/juros por atraso', ajustes: (n0(b.ajustes) < 0 ? 'Crédito da distribuidora' : 'Ajuste da distribuidora'), outros:'Outros itens'};
-      let t = `Sua conta veio ${fmtBRL(k.composicao.total)}:\n• Energia (com o solar): ${fmtBRL(k.energiaPaga)}`;
-      extras.forEach(x => { t += `\n• ${nomes[x.k] || x.label}: ${fmtBRL(x.v)}`; });
-      if(extras.length){
-        const dif = k.composicao.total - k.energiaPaga;
-        t += `\n\nA diferença de ${fmtBRL(Math.abs(dif))} entre a conta e a energia vem ${extras.length === 1 ? 'desse item' : 'desses itens'}, que não ${extras.length === 1 ? 'tem' : 'têm'} relação com o sistema solar.`;
-      }
-      p.push(t);
-    }
-    if(k.credKwh !== null && k.credKwh > 0) p.push(`E ainda sobraram ${fmtNum(k.credKwh)} kWh de créditos, guardados para as próximas contas.`);
-    if(!semDebito) p.push(`Obs.: a conta mostra ${b.debitos.length === 1 ? 'um débito anterior em aberto' : 'débitos anteriores em aberto'} (${b.debitos.map(x => fmtBRL(x.valor)).join(' + ')}). Vale regularizar para evitar corte.`);
-    if(first && semDebito) p.push('Se conhecer alguém que também queira reduzir a conta de luz, me indica! E se puder deixar sua avaliação no Google, ajuda muito a gente 🙏');
-    else if(!first){ const acum = ecoAccum(b.clientId, b.end); if(acum > k.eco) p.push(`Desde a instalação, já são ${fmtBRL(acum)} economizados.`); }
-    return p.join('\n\n');
+    const linhas = [
+      `Olá, ${firstName(c)}! Resumo da sua conta de ${dateBR(b.start)} a ${dateBR(b.end)} ☀️`,
+      '',
+      `• Geração do sistema: ${fmtNum(k.gen)} kWh`,
+      `• Sem o solar, a energia custaria: ${fmtBRL(k.semSolar)}`,
+      `• Com o solar, ficou em: ${fmtBRL(k.energiaPaga)}`,
+      `• Economia: ${fmtBRL(k.eco)}`
+    ];
+    if(k.credKwh !== null && k.credKwh > 0) linhas.push(`• Créditos guardados: ${fmtNum(k.credKwh)} kWh`);
+    linhas.push('', 'Qualquer dúvida, é só chamar!');
+    return linhas.join('\n');
   }
 
   function genMessage(g, c){
