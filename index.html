@@ -246,6 +246,46 @@
     .pq-row{ display:flex; justify-content:space-between; padding: 10px 0; border-bottom: 1px solid #ddd; font-size: 14px; }
     .pq-total{ display:flex; justify-content:space-between; padding: 18px 0; font-size: 20px; font-weight:700; margin-top: 10px; }
   }
+
+  /* Cotar 3 níveis */
+  .cot-fontes{ display:flex; flex-wrap:wrap; gap:8px; margin: 4px 0 16px; }
+  .cot-chip{ font-family: var(--font-mono); font-size: 11px; padding: 5px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); }
+  .cot-chip.ok{ border-color: rgba(53,211,153,.45); color: var(--green); }
+  .cot-chip.off{ opacity: .75; }
+  .cot-niveis{ display:grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 22px; }
+  @media (min-width: 860px){ .cot-niveis{ grid-template-columns: repeat(3, minmax(0,1fr)); align-items: stretch; } }
+  .cot-card{ background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; display:flex; flex-direction:column; gap: 14px; }
+  .cot-card.destaque{ border: 2px solid var(--amber); box-shadow: 0 8px 28px rgba(255,176,32,.10); }
+  @media (max-width: 859px){ .cot-card.destaque{ order: -1; } }
+  .cot-head{ display:flex; justify-content:space-between; align-items:flex-start; gap: 10px; }
+  .cot-nivel{ font-family: var(--font-display); font-weight: 700; font-size: 18px; line-height: 1.1; }
+  .cot-tipo{ font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-top: 4px; }
+  .cot-badge{ background: var(--amber); color: #1a1200; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+  .cot-dist{ font-family: var(--font-mono); font-size: 11px; padding: 3px 9px; border-radius: 20px; background: var(--surface-2); color: var(--text); white-space: nowrap; }
+  .cot-preco{ font-family: var(--font-display); font-weight: 700; font-size: 30px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .cot-card.destaque .cot-preco{ color: var(--amber); }
+  .cot-preco small{ display:block; font-family: var(--font-body); font-weight: 400; font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+  .cot-equip{ list-style:none; margin:0; padding: 12px 0 0; border-top: 1px solid var(--border); display:grid; gap: 8px; }
+  .cot-equip li{ display:grid; grid-template-columns: 34px 1fr; gap: 8px; font-size: 13px; line-height: 1.35; }
+  .cot-equip .q{ font-family: var(--font-mono); font-weight: 600; color: var(--amber); }
+  .cot-equip .t1{ display:inline-block; margin-left: 6px; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: rgba(53,211,153,.15); color: var(--green); }
+  .cot-fatos{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
+  .cot-fatos div{ font-size: 11px; color: var(--text-muted); }
+  .cot-fatos strong{ display:block; font-size: 15px; color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .cot-fatos .lucro strong{ color: var(--green); }
+  .cot-vazio{ color: var(--text-muted); font-size: 13px; }
+  .cot-alts{ margin-bottom: 14px; }
+  .cot-alts summary{ cursor:pointer; font-family: var(--font-display); font-weight: 600; font-size: 15px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; list-style: none; display:flex; justify-content:space-between; align-items:center; }
+  .cot-alts summary::-webkit-details-marker{ display:none; }
+  .cot-alts summary::after{ content:'+'; font-family: var(--font-mono); color: var(--text-muted); }
+  .cot-alts[open] summary::after{ content:'–'; }
+  .cot-alts[open] summary{ border-radius: 12px 12px 0 0; }
+  .cot-alt{ display:grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-top: none; }
+  .cot-alt:last-child{ border-radius: 0 0 12px 12px; }
+  .cot-alt .nome{ font-size: 13px; }
+  .cot-alt .meta{ grid-column: 1 / -1; font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
+  .cot-alt .val{ font-family: var(--font-mono); font-size: 13px; font-weight: 600; text-align: right; white-space: nowrap; }
+  .cot-alt .val small{ display:block; font-weight: 400; color: var(--text-muted); }
 </style>
 </head>
 <body>
@@ -2257,35 +2297,52 @@
     return {venda:v, lucro: v - kit.total - fixos - imposto, porKwp: kit.kwp ? v/kit.kwp : 0};
   }
 
-  function linhaKit(k){
-    const inv = (k.inversores||[]).map(i => i.qtd+'× '+i.nome).join(' + ');
-    const bat = (k.baterias||[]).length ? ' + '+k.baterias.map(b=>b.qtd+'× '+b.nome).join(' + ') : '';
-    return `<tr><td>${esc(k.distribuidora)}</td><td>${esc(k.modulo ? k.modulo.qtd+'× '+k.modulo.nome : '')}</td><td>${esc(inv+bat)}</td><td class="num">${num(k.kwp)}</td><td class="num">${num(k.overload,0)}%</td><td class="num">${brl(k.total)}</td><td class="num">${num(k.rsWp,3)}</td></tr>`;
+  const curto = n => String(n||'').replace(/^(MÓDULO|MODULO|PAINEL|MICROINVERSOR|INVERSOR)\s+/i,'').replace(/\s*\(.*?\)\s*$/,'').replace(/\s+-\s+/g,' · ');
+
+  function equipamentos(k){
+    const itens = [];
+    if(k.modulo) itens.push(`<li><span class="q">${k.modulo.qtd}×</span><span>${esc(curto(k.modulo.nome))}${k.modulo.tier1?'<span class="t1">TIER 1</span>':''}</span></li>`);
+    (k.inversores||[]).forEach(i => itens.push(`<li><span class="q">${i.qtd}×</span><span>${esc(curto(i.nome))}</span></li>`));
+    (k.baterias||[]).forEach(b => itens.push(`<li><span class="q">${b.qtd}×</span><span>${esc(curto(b.nome))}</span></li>`));
+    return `<ul class="cot-equip">${itens.join('')}</ul>`;
+  }
+
+  function cartao(n, k){
+    const destaque = n.key === 'equilibrado';
+    const cab = `<div class="cot-head"><div><div class="cot-nivel">${n.titulo}</div><div class="cot-tipo">${n.sub}</div></div>${destaque?'<span class="cot-badge">Recomendado</span>':(k?`<span class="cot-dist">${esc(k.distribuidora)}</span>`:'')}</div>`;
+    if(!k) return `<div class="cot-card ${destaque?'destaque':''}">${cab}<div class="cot-vazio">Nenhum kit encontrado nas distribuidoras ativas.</div></div>`;
+    const s = venda(k) || {};
+    return `<div class="cot-card ${destaque?'destaque':''}">${cab}
+      <div class="cot-preco">${brl(s.venda)}<small>preço de venda · ${brl(s.porKwp)}/kWp${destaque?' · '+esc(k.distribuidora):''}</small></div>
+      ${equipamentos(k)}
+      <div class="cot-fatos">
+        <div>Potência<strong>${num(k.kwp)} kWp</strong></div>
+        <div>Overload<strong>${num(k.overload,0)}%</strong></div>
+        <div>Custo c/ frete<strong>${brl(k.total)}</strong></div>
+        <div class="lucro">Lucro líquido<strong>${brl(s.lucro)}</strong></div>
+      </div></div>`;
+  }
+
+  function alternativa(k){
+    const inv = (k.inversores||[]).map(i => i.qtd+'× '+curto(i.nome)).join(' + ');
+    const bat = (k.baterias||[]).length ? ' + bateria' : '';
+    return `<div class="cot-alt"><div class="nome">${esc(k.modulo ? k.modulo.qtd+'× '+curto(k.modulo.nome) : '')}<br>${esc(inv+bat)}</div>
+      <div class="val">${brl(k.total)}<small>R$ ${num(k.rsWp,2)}/Wp</small></div>
+      <div class="meta">${esc(k.distribuidora)} · ${num(k.kwp)} kWp · overload ${num(k.overload,0)}%</div></div>`;
   }
 
   function render(d){
     const out = document.getElementById('cotResultado');
-    const fontes = Object.entries(d.fontes||{}).map(([n,f]) => `<div class="hint ${f.ok?'ok-text':''}">${esc(n.toUpperCase())}: ${f.ok ? esc(f.total+' kits encontrados ('+f.cidade+')') : esc(f.erro)}</div>`).join('');
-    const cards = NIVEIS.map(n => {
-      const k = (d.niveis[n.key]||[])[0];
-      if(!k) return `<div class="stat"><div class="k">${n.titulo} · ${n.sub}</div><div class="v" style="font-size:15px;">Sem kit encontrado</div></div>`;
-      const s = venda(k);
-      return `<div class="stat ${n.key==='equilibrado'?'margem':''}"><div class="k">${n.titulo} · ${n.sub}</div>
-        <div class="v">${brl(s && s.venda)}</div>
-        <div class="hint">${esc(k.distribuidora)} · ${esc(k.modulo ? k.modulo.qtd+'× '+k.modulo.nome : '')}</div>
-        <div class="hint">${esc((k.inversores||[]).map(i=>i.qtd+'× '+i.nome).join(' + '))}</div>
-        <div class="hint">${num(k.kwp)} kWp · overload ${num(k.overload,0)}% · custo c/ frete ${brl(k.total)} · R$ ${num(k.rsWp,3)}/Wp · lucro ${brl(s && s.lucro)}</div></div>`;
+    const fontes = Object.entries(d.fontes||{}).map(([n,f]) => `<span class="cot-chip ${f.ok?'ok':'off'}" title="${esc(f.ok?'':f.erro)}">${esc(n.toUpperCase())} · ${f.ok ? esc(f.total+' kits') : (n==='avt'?'via favorito':'em breve')}</span>`).join('');
+    const cards = NIVEIS.map(n => cartao(n, (d.niveis[n.key]||[])[0])).join('');
+    const alts = NIVEIS.map(n => {
+      const lista = (d.niveis[n.key]||[]).slice(1);
+      return lista.length ? `<details class="cot-alts"><summary>Outras opções · ${n.titulo}</summary>${lista.map(alternativa).join('')}</details>` : '';
     }).join('');
-    const top = NIVEIS.map(n => (d.niveis[n.key]||[]).map(linhaKit).join('')).join('');
-    const hib = (d.kits||[]).filter(k => k.tipo==='hibrido' && (k.baterias||[]).length).sort((a,b)=>a.rsWp-b.rsWp).slice(0,3).map(linhaKit).join('');
+    const hibs = (d.kits||[]).filter(k => k.tipo==='hibrido' && (k.baterias||[]).length).sort((a,b)=>a.rsWp-b.rsWp).slice(0,3);
+    const hib = hibs.length ? `<details class="cot-alts"><summary>Híbridos com bateria (referência)</summary>${hibs.map(alternativa).join('')}</details>` : '';
     const avisos = (d.avisos||[]).map(a => `<div class="warn-note">${esc(a)}</div>`).join('');
-    out.innerHTML = `
-      <div class="section">${fontes}</div>
-      <div class="summary">${cards}</div>
-      ${avisos}
-      <div class="section"><div class="section-head"><div class="section-title">3 melhores de cada nível (Tier 1, por R$/Wp)</div></div>
-        <div class="table-wrap"><table><thead><tr><th>Distribuidora</th><th>Painéis</th><th>Inversor</th><th class="num">kWp</th><th class="num">Overload</th><th class="num">Custo + frete</th><th class="num">R$/Wp</th></tr></thead><tbody>${top || '<tr><td colspan="7">Nenhum kit.</td></tr>'}</tbody></table></div></div>
-      ${hib ? `<div class="section"><div class="section-head"><div class="section-title">Híbridos com bateria (referência)</div></div><div class="table-wrap"><table><thead><tr><th>Distribuidora</th><th>Painéis</th><th>Inversor + bateria</th><th class="num">kWp</th><th class="num">Overload</th><th class="num">Custo + frete</th><th class="num">R$/Wp</th></tr></thead><tbody>${hib}</tbody></table></div></div>` : ''}`;
+    out.innerHTML = `<div class="cot-fontes">${fontes}</div><div class="cot-niveis">${cards}</div>${avisos}${alts}${hib}`;
   }
 
   document.getElementById('cotBtn').addEventListener('click', async () => {
