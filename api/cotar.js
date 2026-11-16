@@ -159,7 +159,7 @@ async function cotarFortlev({ kwp, telhado, cidade }) {
 
 // Padrão Solsempre: painel Tier 1 de 590 a 720 W. Se não houver nenhum nessa faixa, aceita outras potências.
 // Marcas de inversor que a Solsempre evita em cada nível.
-const EVITAR = { micro: /GROWATT/i };
+const EVITAR = { string: /GROWATT/i };
 
 function melhores(kits, tipo, n = 3) {
   const evitar = EVITAR[tipo];
