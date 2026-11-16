@@ -280,6 +280,7 @@
   <nav class="app-tabs" id="appTabs">
     <button class="app-tab active" type="button" data-tab="orc">Gerador de orçamento</button>
     <button class="app-tab" type="button" data-tab="pos">Painel de pós-venda</button>
+    <button class="app-tab" type="button" data-tab="cot">Cotar 3 níveis</button>
   </nav>
 
   <div id="tabOrc">
@@ -422,6 +423,34 @@
   </div>
 
   </div><!-- /tabOrc -->
+
+  <div id="tabCot" style="display:none;">
+    <div class="form-card" style="display:block;">
+      <div class="form-card-title">Nova cotação</div>
+      <div class="form-row three">
+        <div><label>Potência do sistema (kWp)</label><input type="text" inputmode="decimal" id="cotKwp" placeholder="Ex: 7,2"></div>
+        <div><label>Tipo de telhado</label><select id="cotTelhado">
+          <option value="ceramico">Cerâmico</option>
+          <option value="fibrocimento_madeira">Fibrocimento (madeira)</option>
+          <option value="fibrocimento_metal">Fibrocimento (metal)</option>
+          <option value="metalico_minitrilho">Metálico (mini trilho)</option>
+          <option value="metalico_perfil">Metálico (perfil contínuo)</option>
+          <option value="zipado">Zipado</option>
+          <option value="shingle">Shingle</option>
+          <option value="laje">Laje</option>
+          <option value="solo_metalico">Solo</option>
+        </select></div>
+        <div><label>Cidade de entrega</label><input type="text" id="cotCidade" value="Itu - SP" placeholder="Ex: Sorocaba - SP"></div>
+      </div>
+      <div class="form-row">
+        <div><label>Margem líquida alvo (%)</label><input type="number" id="cotMargem" value="25" step="0.5"></div>
+        <div><label>Materiais extra (R$)</label><input type="number" id="cotExtras" value="500" step="50"></div>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" type="button" id="cotBtn" style="width:100%; padding:14px; font-size:15px;">Cotar entrada, equilibrado e premium</button></div>
+      <p class="hint" id="cotStatus">Busca automática na Fortlev. A Belenus entra na próxima etapa. A AVT vem pelo favorito "Cotar AVT".</p>
+    </div>
+    <div id="cotResultado"></div>
+  </div>
 
   <div id="tabPos" style="display:none;">
   <div style="margin-bottom:18px;"><button class="btn btn-primary" data-act="new-bill" style="width:100%; padding:14px; font-size:15px;">📷 Nova conta de luz</button></div>
@@ -712,6 +741,8 @@
   }
 
   function taxRateFor(q){ return q.noInvoice ? 0 : TAX_RATE; }
+  // Usado pela aba "Cotar 3 níveis"
+  window.SolsempreCalc = { laborFor: (n) => laborFor(n), homologFor: (p) => homologFor(p), saleForTargetMargin: (F, f, m, t) => saleForTargetMargin(F, f, m, t), TAX_RATE };
 
   // Venda que fecha exatamente a margem alvo, dado: fornecedor(F), mao+homolog+estrutura(fixedCosts), taxa(t), margem(m)
   // Lucro = (V-F)*(1-t) - fixedCosts = m*V  =>  V = [F*(1-t) + fixedCosts] / (1 - t - m)
@@ -1215,11 +1246,13 @@
   // Troca de abas na mesma página (o link não muda)
   const META = {
     orc: {eyebrow:'Energia Solar · Orçamentos', title:'Gerador de Orçamento', sub:'Digite número de painéis, tipo de inversor e compare até 2 fornecedores — mão de obra, homologação, nota fiscal e preço de venda saem automáticos.'},
-    pos: {eyebrow:'Energia Solar · Pós-venda', title:'Pós-venda', sub:'Geração do mês + conta de luz = economia real em reais e mensagem pronta para o cliente.'}
+    pos: {eyebrow:'Energia Solar · Pós-venda', title:'Pós-venda', sub:'Geração do mês + conta de luz = economia real em reais e mensagem pronta para o cliente.'},
+    cot: {eyebrow:'Energia Solar · Cotação', title:'Cotar 3 níveis', sub:'Potência, telhado e cidade: entrada (string), equilibrado (micro) e premium (híbrido), com frete, nas distribuidoras.'}
   };
   function show(tab){
     document.getElementById('tabOrc').style.display = tab === 'orc' ? 'block' : 'none';
     document.getElementById('tabPos').style.display = tab === 'pos' ? 'block' : 'none';
+    document.getElementById('tabCot').style.display = tab === 'cot' ? 'block' : 'none';
     document.querySelectorAll('#appTabs .app-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     document.getElementById('pageEyebrow').textContent = META[tab].eyebrow;
     document.getElementById('pageTitle').textContent = META[tab].title;
@@ -2197,6 +2230,86 @@
       await remove(clientsRef, id);
     }
   });
+})();
+</script>
+<script>
+(function(){
+  // Cotação em 3 níveis: chama /api/cotar e calcula o preço de venda com as regras do gerador.
+  const auth = firebase.auth();
+  const brl = v => (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+  const num = (v,d=2) => (v||0).toLocaleString('pt-BR',{minimumFractionDigits:d, maximumFractionDigits:d});
+  const esc = s => { const d=document.createElement('div'); d.textContent = s==null?'':String(s); return d.innerHTML; };
+  const NIVEIS = [
+    {key:'entrada', titulo:'Entrada', sub:'inversor string'},
+    {key:'equilibrado', titulo:'Equilibrado', sub:'microinversor'},
+    {key:'premium', titulo:'Premium', sub:'híbrido sem bateria'}
+  ];
+
+  function venda(kit){
+    const C = window.SolsempreCalc; if(!C) return null;
+    const m = (parseFloat(document.getElementById('cotMargem').value)||25)/100;
+    const extras = parseFloat(document.getElementById('cotExtras').value)||0;
+    const paineis = kit.modulo ? kit.modulo.qtd : 0;
+    let mao = C.laborFor(paineis).value; if(kit.tipo==='hibrido') mao += 1000;
+    const fixos = mao + C.homologFor(kit.kwp).value + extras;
+    const v = C.saleForTargetMargin(kit.total, fixos, m, C.TAX_RATE);
+    const imposto = (v - kit.total) * C.TAX_RATE;
+    return {venda:v, lucro: v - kit.total - fixos - imposto, porKwp: kit.kwp ? v/kit.kwp : 0};
+  }
+
+  function linhaKit(k){
+    const inv = (k.inversores||[]).map(i => i.qtd+'× '+i.nome).join(' + ');
+    const bat = (k.baterias||[]).length ? ' + '+k.baterias.map(b=>b.qtd+'× '+b.nome).join(' + ') : '';
+    return `<tr><td>${esc(k.distribuidora)}</td><td>${esc(k.modulo ? k.modulo.qtd+'× '+k.modulo.nome : '')}</td><td>${esc(inv+bat)}</td><td class="num">${num(k.kwp)}</td><td class="num">${num(k.overload,0)}%</td><td class="num">${brl(k.total)}</td><td class="num">${num(k.rsWp,3)}</td></tr>`;
+  }
+
+  function render(d){
+    const out = document.getElementById('cotResultado');
+    const fontes = Object.entries(d.fontes||{}).map(([n,f]) => `<div class="hint ${f.ok?'ok-text':''}">${esc(n.toUpperCase())}: ${f.ok ? esc(f.total+' kits encontrados ('+f.cidade+')') : esc(f.erro)}</div>`).join('');
+    const cards = NIVEIS.map(n => {
+      const k = (d.niveis[n.key]||[])[0];
+      if(!k) return `<div class="stat"><div class="k">${n.titulo} · ${n.sub}</div><div class="v" style="font-size:15px;">Sem kit encontrado</div></div>`;
+      const s = venda(k);
+      return `<div class="stat ${n.key==='equilibrado'?'margem':''}"><div class="k">${n.titulo} · ${n.sub}</div>
+        <div class="v">${brl(s && s.venda)}</div>
+        <div class="hint">${esc(k.distribuidora)} · ${esc(k.modulo ? k.modulo.qtd+'× '+k.modulo.nome : '')}</div>
+        <div class="hint">${esc((k.inversores||[]).map(i=>i.qtd+'× '+i.nome).join(' + '))}</div>
+        <div class="hint">${num(k.kwp)} kWp · overload ${num(k.overload,0)}% · custo c/ frete ${brl(k.total)} · R$ ${num(k.rsWp,3)}/Wp · lucro ${brl(s && s.lucro)}</div></div>`;
+    }).join('');
+    const top = NIVEIS.map(n => (d.niveis[n.key]||[]).map(linhaKit).join('')).join('');
+    const hib = (d.kits||[]).filter(k => k.tipo==='hibrido' && (k.baterias||[]).length).sort((a,b)=>a.rsWp-b.rsWp).slice(0,3).map(linhaKit).join('');
+    const avisos = (d.avisos||[]).map(a => `<div class="warn-note">${esc(a)}</div>`).join('');
+    out.innerHTML = `
+      <div class="section">${fontes}</div>
+      <div class="summary">${cards}</div>
+      ${avisos}
+      <div class="section"><div class="section-head"><div class="section-title">3 melhores de cada nível (Tier 1, por R$/Wp)</div></div>
+        <div class="table-wrap"><table><thead><tr><th>Distribuidora</th><th>Painéis</th><th>Inversor</th><th class="num">kWp</th><th class="num">Overload</th><th class="num">Custo + frete</th><th class="num">R$/Wp</th></tr></thead><tbody>${top || '<tr><td colspan="7">Nenhum kit.</td></tr>'}</tbody></table></div></div>
+      ${hib ? `<div class="section"><div class="section-head"><div class="section-title">Híbridos com bateria (referência)</div></div><div class="table-wrap"><table><thead><tr><th>Distribuidora</th><th>Painéis</th><th>Inversor + bateria</th><th class="num">kWp</th><th class="num">Overload</th><th class="num">Custo + frete</th><th class="num">R$/Wp</th></tr></thead><tbody>${hib}</tbody></table></div></div>` : ''}`;
+  }
+
+  document.getElementById('cotBtn').addEventListener('click', async () => {
+    const st = document.getElementById('cotStatus');
+    const btn = document.getElementById('cotBtn');
+    const user = auth.currentUser;
+    if(!user){ st.textContent = 'Entre no sistema primeiro.'; return; }
+    btn.disabled = true; st.textContent = 'Cotando nas distribuidoras… pode levar até 1 minuto.';
+    try{
+      const token = await user.getIdToken();
+      const resp = await fetch('/api/cotar', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({
+        kwp: document.getElementById('cotKwp').value,
+        telhado: document.getElementById('cotTelhado').value,
+        cidade: document.getElementById('cotCidade').value
+      })});
+      const d = await resp.json();
+      if(!d.ok) throw new Error(d.error || 'Erro na cotação');
+      window.__ultimaCotacao = d;
+      render(d);
+      st.textContent = 'Cotação pronta. Preços de distribuidora mudam com frequência.';
+    }catch(e){ st.textContent = 'Não deu certo: ' + e.message; }
+    finally{ btn.disabled = false; }
+  });
+  ['cotMargem','cotExtras'].forEach(id => document.getElementById(id).addEventListener('input', () => { if(window.__ultimaCotacao) render(window.__ultimaCotacao); }));
 })();
 </script>
 </body>
