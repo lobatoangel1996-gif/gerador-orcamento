@@ -157,11 +157,11 @@ async function cotarFortlev({ kwp, telhado, cidade }) {
 
 // ---------- Seleção dos 3 níveis ----------
 
+// Padrão Solsempre: painel Tier 1 de 590 a 720 W. Se não houver nenhum nessa faixa, aceita outras potências.
 function melhores(kits, tipo, n = 3) {
-  return kits
-    .filter(k => k.tipo === tipo && k.modulo && k.modulo.tier1 && k.overload <= 50 && k.rsWp)
-    .sort((a, b) => a.rsWp - b.rsWp)
-    .slice(0, n);
+  const base = kits.filter(k => k.tipo === tipo && k.modulo && k.modulo.tier1 && k.overload <= 50 && k.rsWp);
+  const faixa = base.filter(k => k.modulo.watts >= 590 && k.modulo.watts <= 720);
+  return (faixa.length ? faixa : base).sort((a, b) => a.rsWp - b.rsWp).slice(0, n);
 }
 
 module.exports = async (req, res) => {
